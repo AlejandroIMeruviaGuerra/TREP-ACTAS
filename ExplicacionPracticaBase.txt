@@ -1,0 +1,96 @@
+Idea general del proyecto
+
+El proyecto es un Sistema TREP y Cómputo Oficial Electoral con arquitectura distribuida. La práctica no se trata solo de hacer una página, sino de demostrar que el sistema puede recibir actas por distintos medios, validar datos, separar el recuento rápido del oficial y resistir errores o duplicados.
+
+La idea principal es tener dos flujos:
+
+1. Flujo TREP / Recuento rápido
+
+Este flujo sirve para mostrar resultados rápidos.
+
+Puede recibir datos desde:
+
+PDF leído por OCR.
+Imagen tomada desde móvil.
+SMS.
+Carga rápida de archivo.
+
+Este flujo guarda los datos en el Cluster TREP, formado por:
+
+DBTrep_1
+DBTrep_2
+
+DBTrep_1 sería la base principal y DBTrep_2 la réplica sincronizada. Si una falla, la otra debe tener los mismos datos.
+
+El audio indica que los SMS deben alimentar el recuento rápido, no el oficial, porque para que un dato sea oficial el acta física debe verificarse.
+
+2. Flujo Oficial
+
+Este flujo sirve para registrar los resultados oficiales.
+
+Puede recibir datos desde:
+
+Transcripción manual.
+Archivo CSV.
+Archivo TXT.
+Automatización.
+
+Este flujo guarda los datos en el Cluster Oficial, formado por:
+
+DBOficial_1
+DBOficial_2
+
+DBOficial_1 es la base principal y DBOficial_2 es la réplica sincronizada.
+
+3. Validación de datos
+
+Antes de guardar un acta, el sistema debe validar:
+
+papeletas_anfora + papeletas_no_usadas = electores_habilitados
+
+votos_validos + votos_nulos = papeletas_anfora
+
+primer_partido + segundo_partido + tercer_partido + cuarto_partido + votos_blancos = votos_validos
+
+Si el acta no cumple, no se guarda como válida. Se manda a logs como error.
+
+4. Qué debe demostrar el proyecto
+
+El sistema debe demostrar:
+
+Separación entre TREP y Oficial.
+Dos clusters con dos bases cada uno.
+Validación de actas.
+Manejo de duplicados.
+Logs de errores.
+Dashboard de resultados.
+Comparación TREP vs Oficial.
+Escaneo móvil o carga de imagen.
+Pruebas finales y documentación.
+Estructura recomendada para Trello
+
+Puedes crear estas listas en Trello:
+
+1. Pendiente
+2. En proceso
+3. En revisión
+4. Probando
+5. Terminado
+
+Y usar etiquetas:
+
+Etiqueta	Uso
+Backend	APIs, validaciones, conexión con BD.
+Frontend Web	Pantallas, dashboard, carga de archivos.
+Base de Datos	SQL, clusters, sincronización.
+Móvil/OCR	Captura de foto, OpenCV, YOLO, escaneo.
+Testing	Pruebas, errores, evidencias.
+Documentación	Informe, capturas, defensa.
+Urgente	Lo que bloquea a otros.
+Asignación general por persona
+Persona	Rol principal
+Alejandro	Líder, backend principal, frontend base funcional e integración general.
+Zambrana	Base de datos, clusters y sincronización.
+Sebastián	Backend 2, frontend 2, web/móvil, pruebas y corrección de errores.
+José	Escaneo móvil, OpenCV/YOLO, pruebas de lectura de actas.
+Fer	Pruebas finales, documentación, capturas y preparación de defensa.

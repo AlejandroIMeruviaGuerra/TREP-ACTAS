@@ -1,0 +1,382 @@
+¿Cómo metemos los datos? Como funciona el programa
+Orden correcto
+
+Primero se cargan los datos base en todas las bases:
+
+1. distribucion_territorial
+2. recintos_electorales
+3. actas_impresas
+
+Después recién entran los resultados.
+
+En el cluster TREP
+
+Los datos entran a:
+
+DBTrep_1.dbo.resultados_actas_trep
+
+Luego se copian o sincronizan a:
+
+DBTrep_2.dbo.resultados_actas_trep
+
+Ejemplo:
+
+USE DBTrep_1;
+GO
+
+INSERT INTO resultados_actas_trep (
+    codigo_mesa,
+    id_recinto,
+    idDistribucion,
+    fuente,
+    nombre_archivo,
+    telefono_origen,
+    electores_habilitados,
+    papeletas_anfora,
+    papeletas_no_usadas,
+    primer_partido,
+    segundo_partido,
+    tercer_partido,
+    cuarto_partido,
+    votos_validos,
+    votos_blancos,
+    votos_nulos,
+    estado_acta,
+    observacion
+)
+VALUES (
+    '10101001001',
+    10101001,
+    10101,
+    'PDF_OCR',
+    'acta_10101001001.pdf',
+    NULL,
+    339,
+    300,
+    39,
+    120,
+    80,
+    50,
+    30,
+    290,
+    10,
+    10,
+    'VALIDO',
+    'Acta registrada por OCR.'
+);
+GO
+Sincronizar con DBTrep_2
+
+Para la práctica, pueden simular la sincronización así:
+
+INSERT INTO DBTrep_2.dbo.resultados_actas_trep (
+    codigo_mesa,
+    id_recinto,
+    idDistribucion,
+    fuente,
+    nombre_archivo,
+    telefono_origen,
+    electores_habilitados,
+    papeletas_anfora,
+    papeletas_no_usadas,
+    primer_partido,
+    segundo_partido,
+    tercer_partido,
+    cuarto_partido,
+    votos_validos,
+    votos_blancos,
+    votos_nulos,
+    estado_acta,
+    observacion,
+    fecha_registro
+)
+SELECT
+    codigo_mesa,
+    id_recinto,
+    idDistribucion,
+    fuente,
+    nombre_archivo,
+    telefono_origen,
+    electores_habilitados,
+    papeletas_anfora,
+    papeletas_no_usadas,
+    primer_partido,
+    segundo_partido,
+    tercer_partido,
+    cuarto_partido,
+    votos_validos,
+    votos_blancos,
+    votos_nulos,
+    estado_acta,
+    observacion,
+    fecha_registro
+FROM DBTrep_1.dbo.resultados_actas_trep
+WHERE codigo_mesa NOT IN (
+    SELECT codigo_mesa
+    FROM DBTrep_2.dbo.resultados_actas_trep
+);
+GO
+En el cluster Oficial
+
+Los datos entran a:
+
+DBOficial_1.dbo.resultados_actas_oficial
+
+Luego se copian o sincronizan a:
+
+DBOficial_2.dbo.resultados_actas_oficial
+
+Ejemplo:
+
+USE DBOficial_1;
+GO
+
+INSERT INTO resultados_actas_oficial (
+    codigo_mesa,
+    id_recinto,
+    idDistribucion,
+    fuente,
+    electores_habilitados,
+    papeletas_anfora,
+    papeletas_no_usadas,
+    primer_partido,
+    segundo_partido,
+    tercer_partido,
+    cuarto_partido,
+    votos_validos,
+    votos_blancos,
+    votos_nulos,
+    estado_acta,
+    observacion,
+    createdByUser
+)
+VALUES (
+    '10101001001',
+    10101001,
+    10101,
+    'CSV',
+    339,
+    298,
+    41,
+    118,
+    80,
+    50,
+    30,
+    288,
+    10,
+    10,
+    'VALIDO',
+    'Acta oficial cargada desde CSV.',
+    1
+);
+GO
+Sincronizar con DBOficial_2
+INSERT INTO DBOficial_2.dbo.resultados_actas_oficial (
+    codigo_mesa,
+    id_recinto,
+    idDistribucion,
+    fuente,
+    electores_habilitados,
+    papeletas_anfora,
+    papeletas_no_usadas,
+    primer_partido,
+    segundo_partido,
+    tercer_partido,
+    cuarto_partido,
+    votos_validos,
+    votos_blancos,
+    votos_nulos,
+    estado_acta,
+    observacion,
+    createdAt,
+    createdByUser,
+    updatedAt,
+    updatedByUser
+)
+SELECT
+    codigo_mesa,
+    id_recinto,
+    idDistribucion,
+    fuente,
+    electores_habilitados,
+    papeletas_anfora,
+    papeletas_no_usadas,
+    primer_partido,
+    segundo_partido,
+    tercer_partido,
+    cuarto_partido,
+    votos_validos,
+    votos_blancos,
+    votos_nulos,
+    estado_acta,
+    observacion,
+    createdAt,
+    createdByUser,
+    updatedAt,
+    updatedByUser
+FROM DBOficial_1.dbo.resultados_actas_oficial
+WHERE codigo_mesa NOT IN (
+    SELECT codigo_mesa
+    FROM DBOficial_2.dbo.resultados_actas_oficial
+);
+GO
+4. ¿Qué hace cada base de datos?
+Cluster TREP
+DBTrep_1
+
+Es la base principal del recuento rápido.
+
+Aquí se guardan primero los resultados que llegan desde:
+
+OCR.
+PDF.
+Foto móvil.
+SMS.
+
+Sirve para mostrar resultados rápidos en el dashboard.
+
+DBTrep_2
+
+Es la copia sincronizada de DBTrep_1.
+
+Sirve para que, si DBTrep_1 falla, el sistema pueda seguir funcionando usando DBTrep_2.
+
+No es una base diferente en lógica. Tiene los mismos datos que DBTrep_1.
+
+5. ¿Qué tablas tiene el cluster TREP?
+distribucion_territorial
+
+Guarda:
+
+Departamento
+Provincia
+Municipio
+
+Sirve para agrupar resultados por zona.
+
+recintos_electorales
+
+Guarda los centros de votación.
+
+Ejemplo:
+
+Colegio Juan XXIII
+Unidad Educativa Rumy Corral
+Instituto Particular Quillacollo
+actas_impresas
+
+Guarda las mesas ya conocidas antes de la votación.
+
+Ejemplo:
+
+codigo_mesa: 10101001001
+nro_mesa: 1
+nro_votantes: 339
+
+Esta tabla sirve como control para validar.
+
+resultados_actas_trep
+
+Guarda el resultado rápido de cada mesa.
+
+Aquí se guardan:
+
+votos partido 1
+votos partido 2
+votos partido 3
+votos partido 4
+votos blancos
+votos nulos
+votos válidos
+fuente del dato
+
+La fuente puede ser:
+
+PDF_OCR
+SMS
+MOVIL
+logs_trep
+
+Guarda errores del recuento rápido.
+
+Ejemplos:
+
+OCR fallido
+SMS mal escrito
+Mesa duplicada
+No coincide la suma de votos
+6. Cluster Oficial
+DBOficial_1
+
+Es la base principal del cómputo oficial.
+
+Aquí se guardan los resultados oficiales que vienen desde:
+
+Transcripción manual.
+CSV.
+TXT.
+Automatización.
+DBOficial_2
+
+Es la copia sincronizada de DBOficial_1.
+
+Sirve como respaldo activo. Si DBOficial_1 cae, el sistema puede consultar DBOficial_2.
+
+7. ¿Qué tablas tiene el cluster Oficial?
+distribucion_territorial
+
+Igual que en TREP. Sirve para consultar resultados por departamento, provincia o municipio.
+
+recintos_electorales
+
+Igual que en TREP. Guarda los centros de votación.
+
+actas_impresas
+
+Igual que en TREP. Sirve para validar los resultados oficiales.
+
+usuarios
+
+Guarda quién registra o modifica datos oficiales.
+
+Ejemplos de roles:
+
+TRANSCRIPTOR
+NOTARIO
+ADMIN
+SISTEMA
+
+Esta tabla es importante porque el oficial debe ser más auditable.
+
+resultados_actas_oficial
+
+Guarda el resultado oficial de cada mesa.
+
+Tiene los mismos votos que TREP, pero además guarda:
+
+createdByUser
+createdAt
+updatedByUser
+updatedAt
+
+Eso permite saber quién registró o modificó el dato.
+
+logs_oficial
+
+Guarda errores del proceso oficial.
+
+Ejemplos:
+
+Error de transcripción
+Usuario inválido
+Mesa duplicada
+Validación incorrecta
+8. Reglas de validación
+
+Estas reglas se aplican en ambos clusters.
+
+1. papeletas_anfora + papeletas_no_usadas = electores_habilitados
+
+2. votos_validos + votos_nulos = papeletas_anfora
+
+3. primer_partido + segundo_partido + tercer_partido + cuarto_partido + votos_blancos = votos_v
