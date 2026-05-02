@@ -15,6 +15,14 @@ const menuItems = [
     label: "Actas observadas",
   },
   {
+    id: "pdf",
+    label: "Escanear PDF",
+  },
+  {
+    id: "camera",
+    label: "Tomar foto",
+  },
+  {
     id: "logs",
     label: "Logs",
   },

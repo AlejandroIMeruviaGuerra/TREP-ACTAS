@@ -6,6 +6,8 @@ import OficialPage from "./pages/oficial/OficialPage";
 import ObservadasPage from "./pages/observadas/ObservadasPage";
 import LogsPage from "./pages/logs/LogsPage";
 import LoginPage from "./pages/login/LoginPage";
+import MobilePdfPage from "./pages/mobile/pdf/MobilePdfPage";
+import MobileCameraPage from "./pages/mobile/camera/MobileCameraPage";
 
 import { getCurrentUser, logoutUser } from "./utils/auth";
 
@@ -26,6 +28,8 @@ function App() {
     if (currentPage === "dashboard") return <DashboardPage />;
     if (currentPage === "oficial") return <OficialPage />;
     if (currentPage === "observadas") return <ObservadasPage />;
+    if (currentPage === "pdf") return <MobilePdfPage />;
+    if (currentPage === "camera") return <MobileCameraPage />;
     if (currentPage === "logs") return <LogsPage />;
 
     return <DashboardPage />;
