@@ -1,0 +1,17 @@
+path: dataset
+train: images/train
+val: images/val
+
+names:
+  0: codigo_mesa
+  1: numero_mesa
+  2: candidato_1
+  3: candidato_2
+  4: candidato_3
+  5: candidato_4
+  6: votos_validos
+  7: votos_blancos
+  8: votos_nulos
+  9: electores_habilitados
+  10: papeletas_anfora
+  11: papeletas_no_usadas

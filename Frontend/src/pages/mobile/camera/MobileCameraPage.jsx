@@ -4,6 +4,7 @@ import { uploadActaPhoto } from "../../../services/mobileScanService";
 import "./MobileCameraPage.css";
 
 function MobileCameraPage() {
+
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState("");
   const [message, setMessage] = useState("");

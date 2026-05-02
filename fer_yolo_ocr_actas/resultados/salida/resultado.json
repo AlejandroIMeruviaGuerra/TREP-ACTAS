@@ -1,0 +1,299 @@
+{
+  "archivo": "dataset/images/train/foto1.png",
+  "orientacion_usada": "original",
+  "roboflow_version": 3,
+  "datos_extraidos": {
+    "codigo_mesa": 1030400115004,
+    "numero_mesa": 4,
+    "candidato_1": 75,
+    "candidato_2": 4,
+    "candidato_3": 8,
+    "candidato_4": 372,
+    "votos_validos": 559,
+    "votos_blancos": 138,
+    "votos_nulos": 24,
+    "electores_habilitados": 8983,
+    "papeletas_anfora": 748,
+    "papeletas_no_usadas": 175,
+    "papeletas_anfora_roto": null,
+    "hora_apertura": 8,
+    "minuto_apertura": 5,
+    "hora_cierre": 16,
+    "minuto_cierre": 50,
+    "departamento": "- Chuquisaca",
+    "provincia": "Ne SENG RE a Zud ez lLa~lawa",
+    "municipio": "@& sts Icla",
+    "localidad": "owled UE. Joso Carlos Carrillo gH — — | ee ee ., 2 ee. ee fae w",
+    "recinto": "WO. JOSO Ud TOS UVcllblhliao Comunidad Tirani?Final Av. Atahuallpa segunda circunvalacion |",
+    "acta_anulada": null,
+    "campo_roto": null
+  },
+  "detecciones": [
+    {
+      "campo": "codigo_mesa",
+      "confianza_yolo": 0.9569,
+      "valor_ocr": 1030400115004,
+      "bbox": [
+        79,
+        161,
+        216,
+        186
+      ]
+    },
+    {
+      "campo": "papeletas_anfora",
+      "confianza_yolo": 0.9421,
+      "valor_ocr": 748,
+      "bbox": [
+        113,
+        753,
+        201,
+        780
+      ]
+    },
+    {
+      "campo": "candidato_3",
+      "confianza_yolo": 0.941,
+      "valor_ocr": 8,
+      "bbox": [
+        456,
+        343,
+        531,
+        368
+      ]
+    },
+    {
+      "campo": "hora_cierre",
+      "confianza_yolo": 0.9327,
+      "valor_ocr": 16,
+      "bbox": [
+        85,
+        602,
+        145,
+        627
+      ]
+    },
+    {
+      "campo": "papeletas_no_usadas",
+      "confianza_yolo": 0.9277,
+      "valor_ocr": 175,
+      "bbox": [
+        112,
+        832,
+        201,
+        857
+      ]
+    },
+    {
+      "campo": "votos_validos",
+      "confianza_yolo": 0.9222,
+      "valor_ocr": 559,
+      "bbox": [
+        457,
+        620,
+        530,
+        645
+      ]
+    },
+    {
+      "campo": "hora_apertura",
+      "confianza_yolo": 0.9062,
+      "valor_ocr": 8,
+      "bbox": [
+        84,
+        476,
+        146,
+        499
+      ]
+    },
+    {
+      "campo": "localidad",
+      "confianza_yolo": 0.9026,
+      "valor_ocr": "owled UE. Joso Carlos Carrillo gH — — | ee ee ., 2 ee. ee fae w",
+      "bbox": [
+        330,
+        189,
+        466,
+        201
+      ]
+    },
+    {
+      "campo": "numero_mesa",
+      "confianza_yolo": 0.9016,
+      "valor_ocr": 4,
+      "bbox": [
+        104,
+        303,
+        163,
+        369
+      ]
+    },
+    {
+      "campo": "candidato_1",
+      "confianza_yolo": 0.8648,
+      "valor_ocr": 75,
+      "bbox": [
+        456,
+        280,
+        531,
+        306
+      ]
+    },
+    {
+      "campo": "minuto_apertura",
+      "confianza_yolo": 0.8628,
+      "valor_ocr": 5,
+      "bbox": [
+        155,
+        476,
+        217,
+        499
+      ]
+    },
+    {
+      "campo": "departamento",
+      "confianza_yolo": 0.8458,
+      "valor_ocr": "- Chuquisaca",
+      "bbox": [
+        333,
+        150,
+        399,
+        163
+      ]
+    },
+    {
+      "campo": "votos_blancos",
+      "confianza_yolo": 0.8433,
+      "valor_ocr": 138,
+      "bbox": [
+        459,
+        676,
+        532,
+        701
+      ]
+    },
+    {
+      "campo": "candidato_4",
+      "confianza_yolo": 0.825,
+      "valor_ocr": 372,
+      "bbox": [
+        456,
+        376,
+        531,
+        400
+      ]
+    },
+    {
+      "campo": "minuto_cierre",
+      "confianza_yolo": 0.8186,
+      "valor_ocr": 50,
+      "bbox": [
+        155,
+        603,
+        215,
+        627
+      ]
+    },
+    {
+      "campo": "recinto",
+      "confianza_yolo": 0.7992,
+      "valor_ocr": "WO. JOSO Ud TOS UVcllblhliao Comunidad Tirani?Final Av. Atahuallpa segunda circunvalacion |",
+      "bbox": [
+        334,
+        201,
+        657,
+        214
+      ]
+    },
+    {
+      "campo": "votos_nulos",
+      "confianza_yolo": 0.7651,
+      "valor_ocr": 24,
+      "bbox": [
+        459,
+        709,
+        532,
+        734
+      ]
+    },
+    {
+      "campo": "electores_habilitados",
+      "confianza_yolo": 0.7435,
+      "valor_ocr": 8983,
+      "bbox": [
+        112,
+        676,
+        201,
+        700
+      ]
+    },
+    {
+      "campo": "candidato_2",
+      "confianza_yolo": 0.7425,
+      "valor_ocr": 4,
+      "bbox": [
+        457,
+        312,
+        530,
+        337
+      ]
+    },
+    {
+      "campo": "provincia",
+      "confianza_yolo": 0.3744,
+      "valor_ocr": "Ne SENG RE a Zud ez lLa~lawa",
+      "bbox": [
+        333,
+        164,
+        389,
+        177
+      ]
+    },
+    {
+      "campo": "municipio",
+      "confianza_yolo": 0.2803,
+      "valor_ocr": "@& sts Icla",
+      "bbox": [
+        335,
+        177,
+        359,
+        186
+      ]
+    }
+  ],
+  "validacion": {
+    "estado": "INVALIDA",
+    "errores": [
+      "Inconsistencia aritmética: candidatos=459 y votos_validos=559",
+      "Inconsistencia aritmética: validos+blancos+nulos=721 y anfora=748",
+      "Datos contradictorios: anfora+no_usadas=923 y habilitados=8983"
+    ],
+    "advertencias": [],
+    "datos": {
+      "codigo_mesa": 1030400115004,
+      "numero_mesa": 4,
+      "candidato_1": 75,
+      "candidato_2": 4,
+      "candidato_3": 8,
+      "candidato_4": 372,
+      "votos_validos": 559,
+      "votos_blancos": 138,
+      "votos_nulos": 24,
+      "electores_habilitados": 8983,
+      "papeletas_anfora": 748,
+      "papeletas_no_usadas": 175,
+      "hora_apertura": 8,
+      "minuto_apertura": 5,
+      "hora_cierre": 16,
+      "minuto_cierre": 50,
+      "departamento": "- Chuquisaca",
+      "provincia": "Ne SENG RE a Zud ez lLa~lawa",
+      "municipio": "@& sts Icla",
+      "localidad": "owled UE. Joso Carlos Carrillo gH — — | ee ee ., 2 ee. ee fae w",
+      "recinto": "WO. JOSO Ud TOS UVcllblhliao Comunidad Tirani?Final Av. Atahuallpa segunda circunvalacion |",
+      "acta_anulada": false,
+      "campo_roto": false,
+      "papeletas_anfora_roto": false
+    }
+  }
+}

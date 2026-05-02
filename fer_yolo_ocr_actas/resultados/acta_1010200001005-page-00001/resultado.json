@@ -1,0 +1,299 @@
+{
+  "archivo": "resultados\\uploads\\acta_1010200001005-page-00001.jpg",
+  "pdf_original": "resultados\\acta_1010200001005-page-00001\\acta_1010200001005-page-00001.pdf",
+  "orientacion_usada": "rot_90_counterclockwise",
+  "roboflow_version": 3,
+  "datos_extraidos": {
+    "codigo_mesa": null,
+    "numero_mesa": null,
+    "candidato_1": null,
+    "candidato_2": 3,
+    "candidato_3": 7,
+    "candidato_4": 3,
+    "votos_validos": null,
+    "votos_blancos": null,
+    "votos_nulos": null,
+    "electores_habilitados": 5,
+    "papeletas_anfora": null,
+    "papeletas_no_usadas": null,
+    "papeletas_anfora_roto": null,
+    "hora_apertura": 5,
+    "minuto_apertura": null,
+    "hora_cierre": 4,
+    "minuto_cierre": null,
+    "departamento": "1 O oe 2 = => = = O",
+    "provincia": "© N oD o. O a O",
+    "municipio": "& = © jad Oo >",
+    "localidad": "© = wi Dp a) = SG c aE UL —)",
+    "recinto": "© Lo — ‘= aa N —_ rant O qe) jaunt CC 'q' Y) 'q' qv) © = qv) © qv) £ O © O Oo i ® jad ® ral . 'q' O & cb ral © 5 O - 3 © ew ) & ; —_ 5 oO - © » qQ)",
+    "acta_anulada": null,
+    "campo_roto": null
+  },
+  "detecciones": [
+    {
+      "campo": "papeletas_no_usadas",
+      "confianza_yolo": 0.951,
+      "valor_ocr": null,
+      "bbox": [
+        4637,
+        6629,
+        4780,
+        7124
+      ]
+    },
+    {
+      "campo": "localidad",
+      "confianza_yolo": 0.9267,
+      "valor_ocr": "© = wi Dp a) = SG c aE UL —)",
+      "bbox": [
+        1062,
+        5427,
+        1120,
+        5906
+      ]
+    },
+    {
+      "campo": "votos_validos",
+      "confianza_yolo": 0.9217,
+      "valor_ocr": null,
+      "bbox": [
+        3453,
+        4769,
+        3601,
+        5199
+      ]
+    },
+    {
+      "campo": "departamento",
+      "confianza_yolo": 0.9141,
+      "valor_ocr": "1 O oe 2 = => = = O",
+      "bbox": [
+        844,
+        5532,
+        907,
+        5889
+      ]
+    },
+    {
+      "campo": "electores_habilitados",
+      "confianza_yolo": 0.906,
+      "valor_ocr": 5,
+      "bbox": [
+        3756,
+        6629,
+        3904,
+        7116
+      ]
+    },
+    {
+      "campo": "numero_mesa",
+      "confianza_yolo": 0.9037,
+      "valor_ocr": null,
+      "bbox": [
+        1700,
+        6857,
+        2040,
+        7157
+      ]
+    },
+    {
+      "campo": "candidato_2",
+      "confianza_yolo": 0.8904,
+      "valor_ocr": 3,
+      "bbox": [
+        1732,
+        4777,
+        1880,
+        5199
+      ]
+    },
+    {
+      "campo": "candidato_1",
+      "confianza_yolo": 0.8822,
+      "valor_ocr": null,
+      "bbox": [
+        1556,
+        4785,
+        1704,
+        5207
+      ]
+    },
+    {
+      "campo": "codigo_mesa",
+      "confianza_yolo": 0.8783,
+      "valor_ocr": null,
+      "bbox": [
+        898,
+        6540,
+        1046,
+        7303
+      ]
+    },
+    {
+      "campo": "votos_blancos",
+      "confianza_yolo": 0.8779,
+      "valor_ocr": null,
+      "bbox": [
+        3766,
+        4777,
+        3914,
+        5191
+      ]
+    },
+    {
+      "campo": "candidato_3",
+      "confianza_yolo": 0.8482,
+      "valor_ocr": 7,
+      "bbox": [
+        1907,
+        4777,
+        2061,
+        5199
+      ]
+    },
+    {
+      "campo": "candidato_4",
+      "confianza_yolo": 0.7941,
+      "valor_ocr": 3,
+      "bbox": [
+        2087,
+        4777,
+        2230,
+        5199
+      ]
+    },
+    {
+      "campo": "minuto_apertura",
+      "confianza_yolo": 0.7782,
+      "valor_ocr": null,
+      "bbox": [
+        2651,
+        6548,
+        2783,
+        6889
+      ]
+    },
+    {
+      "campo": "hora_apertura",
+      "confianza_yolo": 0.7609,
+      "valor_ocr": 5,
+      "bbox": [
+        2651,
+        6938,
+        2783,
+        7271
+      ]
+    },
+    {
+      "campo": "minuto_cierre",
+      "confianza_yolo": 0.6897,
+      "valor_ocr": null,
+      "bbox": [
+        3357,
+        6540,
+        3500,
+        6889
+      ]
+    },
+    {
+      "campo": "papeletas_anfora",
+      "confianza_yolo": 0.6565,
+      "valor_ocr": null,
+      "bbox": [
+        4202,
+        6637,
+        4350,
+        7124
+      ]
+    },
+    {
+      "campo": "votos_nulos",
+      "confianza_yolo": 0.5696,
+      "valor_ocr": null,
+      "bbox": [
+        3946,
+        4769,
+        4089,
+        5199
+      ]
+    },
+    {
+      "campo": "recinto",
+      "confianza_yolo": 0.5548,
+      "valor_ocr": "© Lo — ‘= aa N —_ rant O qe) jaunt CC 'q' Y) 'q' qv) © = qv) © qv) £ O © O Oo i ® jad ® ral . 'q' O & cb ral © 5 O - 3 © ew ) & ; —_ 5 oO - © » qQ)",
+      "bbox": [
+        1104,
+        4013,
+        1215,
+        5784
+      ]
+    },
+    {
+      "campo": "hora_cierre",
+      "confianza_yolo": 0.5389,
+      "valor_ocr": 4,
+      "bbox": [
+        3352,
+        6938,
+        3500,
+        7279
+      ]
+    },
+    {
+      "campo": "municipio",
+      "confianza_yolo": 0.5086,
+      "valor_ocr": "& = © jad Oo >",
+      "bbox": [
+        977,
+        5687,
+        1046,
+        5882
+      ]
+    },
+    {
+      "campo": "provincia",
+      "confianza_yolo": 0.4645,
+      "valor_ocr": "© N oD o. O a O",
+      "bbox": [
+        913,
+        5622,
+        982,
+        5890
+      ]
+    }
+  ],
+  "validacion": {
+    "estado": "OBSERVADA",
+    "errores": [],
+    "advertencias": [
+      "Campos no leídos por OCR: codigo_mesa, numero_mesa, candidato_1, votos_validos, votos_blancos, votos_nulos, papeletas_anfora, papeletas_no_usadas, minuto_apertura, minuto_cierre",
+      "Campos críticos faltantes: codigo_mesa, numero_mesa, votos_validos"
+    ],
+    "datos": {
+      "codigo_mesa": null,
+      "numero_mesa": null,
+      "candidato_1": null,
+      "candidato_2": 3,
+      "candidato_3": 7,
+      "candidato_4": 3,
+      "votos_validos": null,
+      "votos_blancos": null,
+      "votos_nulos": null,
+      "electores_habilitados": 5,
+      "papeletas_anfora": null,
+      "papeletas_no_usadas": null,
+      "hora_apertura": 5,
+      "minuto_apertura": null,
+      "hora_cierre": 4,
+      "minuto_cierre": null,
+      "departamento": "1 O oe 2 = => = = O",
+      "provincia": "© N oD o. O a O",
+      "municipio": "& = © jad Oo >",
+      "localidad": "© = wi Dp a) = SG c aE UL —)",
+      "recinto": "© Lo — ‘= aa N —_ rant O qe) jaunt CC 'q' Y) 'q' qv) © = qv) © qv) £ O © O Oo i ® jad ® ral . 'q' O & cb ral © 5 O - 3 © ew ) & ; —_ 5 oO - © » qQ)",
+      "acta_anulada": false,
+      "campo_roto": false,
+      "papeletas_anfora_roto": false
+    }
+  }
+}

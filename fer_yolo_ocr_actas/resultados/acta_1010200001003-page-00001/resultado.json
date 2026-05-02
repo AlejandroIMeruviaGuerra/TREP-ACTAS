@@ -1,0 +1,301 @@
+{
+  "archivo": "resultados\\uploads\\acta_1010200001003-page-00001.jpg",
+  "pdf_original": "resultados\\acta_1010200001003-page-00001\\acta_1010200001003-page-00001.pdf",
+  "orientacion_usada": "original",
+  "roboflow_version": 3,
+  "datos_extraidos": {
+    "codigo_mesa": 1010200001003,
+    "numero_mesa": 3,
+    "candidato_1": null,
+    "candidato_2": 32,
+    "candidato_3": 52,
+    "candidato_4": 4812,
+    "votos_validos": 748,
+    "votos_blancos": 12,
+    "votos_nulos": 7,
+    "electores_habilitados": 6987,
+    "papeletas_anfora": 8517,
+    "papeletas_no_usadas": 1310,
+    "papeletas_anfora_roto": null,
+    "hora_apertura": 8,
+    "minuto_apertura": 1,
+    "hora_cierre": 16,
+    "minuto_cierre": 1,
+    "departamento": "-Chuquisaca_",
+    "provincia": "Oropeza’",
+    "municipio": "Yotala >",
+    "localidad": "U.lc. Padresama",
+    "recinto": "Se encuentra sobre la carretera cochabamba a Santa Cruz km 150.",
+    "acta_anulada": null,
+    "campo_roto": null
+  },
+  "detecciones": [
+    {
+      "campo": "papeletas_anfora",
+      "confianza_yolo": 0.9462,
+      "valor_ocr": 8517,
+      "bbox": [
+        674,
+        4207,
+        1161,
+        4345
+      ]
+    },
+    {
+      "campo": "papeletas_no_usadas",
+      "confianza_yolo": 0.9282,
+      "valor_ocr": 1310,
+      "bbox": [
+        674,
+        4643,
+        1161,
+        4775
+      ]
+    },
+    {
+      "campo": "electores_habilitados",
+      "confianza_yolo": 0.8944,
+      "valor_ocr": 6987,
+      "bbox": [
+        674,
+        3761,
+        1169,
+        3899
+      ]
+    },
+    {
+      "campo": "codigo_mesa",
+      "confianza_yolo": 0.8848,
+      "valor_ocr": 1010200001003,
+      "bbox": [
+        487,
+        897,
+        1250,
+        1035
+      ]
+    },
+    {
+      "campo": "numero_mesa",
+      "confianza_yolo": 0.8763,
+      "valor_ocr": 3,
+      "bbox": [
+        650,
+        1694,
+        934,
+        2039
+      ]
+    },
+    {
+      "campo": "hora_apertura",
+      "confianza_yolo": 0.857,
+      "valor_ocr": 8,
+      "bbox": [
+        519,
+        2651,
+        852,
+        2783
+      ]
+    },
+    {
+      "campo": "candidato_3",
+      "confianza_yolo": 0.8562,
+      "valor_ocr": 52,
+      "bbox": [
+        2592,
+        1912,
+        3006,
+        2055
+      ]
+    },
+    {
+      "campo": "hora_cierre",
+      "confianza_yolo": 0.8409,
+      "valor_ocr": 16,
+      "bbox": [
+        519,
+        3352,
+        852,
+        3490
+      ]
+    },
+    {
+      "campo": "candidato_4",
+      "confianza_yolo": 0.8402,
+      "valor_ocr": 4812,
+      "bbox": [
+        2592,
+        2093,
+        3006,
+        2231
+      ]
+    },
+    {
+      "campo": "votos_blancos",
+      "confianza_yolo": 0.8367,
+      "valor_ocr": 12,
+      "bbox": [
+        2600,
+        3771,
+        3006,
+        3909
+      ]
+    },
+    {
+      "campo": "candidato_1",
+      "confianza_yolo": 0.8352,
+      "valor_ocr": null,
+      "bbox": [
+        2583,
+        1556,
+        2997,
+        1699
+      ]
+    },
+    {
+      "campo": "recinto",
+      "confianza_yolo": 0.8013,
+      "valor_ocr": "Se encuentra sobre la carretera cochabamba a Santa Cruz km 150.",
+      "bbox": [
+        1893,
+        1120,
+        3753,
+        1189
+      ]
+    },
+    {
+      "campo": "votos_validos",
+      "confianza_yolo": 0.773,
+      "valor_ocr": 748,
+      "bbox": [
+        2600,
+        3458,
+        3006,
+        3596
+      ]
+    },
+    {
+      "campo": "minuto_apertura",
+      "confianza_yolo": 0.7676,
+      "valor_ocr": 1,
+      "bbox": [
+        909,
+        2656,
+        1242,
+        2783
+      ]
+    },
+    {
+      "campo": "votos_nulos",
+      "confianza_yolo": 0.7557,
+      "valor_ocr": 7,
+      "bbox": [
+        2600,
+        3952,
+        3006,
+        4090
+      ]
+    },
+    {
+      "campo": "minuto_cierre",
+      "confianza_yolo": 0.7462,
+      "valor_ocr": 1,
+      "bbox": [
+        909,
+        3357,
+        1242,
+        3489
+      ]
+    },
+    {
+      "campo": "municipio",
+      "confianza_yolo": 0.7171,
+      "valor_ocr": "Yotala >",
+      "bbox": [
+        1909,
+        983,
+        2120,
+        1041
+      ]
+    },
+    {
+      "campo": "departamento",
+      "confianza_yolo": 0.6959,
+      "valor_ocr": "-Chuquisaca_",
+      "bbox": [
+        1901,
+        838,
+        2266,
+        907
+      ]
+    },
+    {
+      "campo": "candidato_2",
+      "confianza_yolo": 0.6821,
+      "valor_ocr": 32,
+      "bbox": [
+        2592,
+        1737,
+        3006,
+        1875
+      ]
+    },
+    {
+      "campo": "localidad",
+      "confianza_yolo": 0.6648,
+      "valor_ocr": "U.lc. Padresama",
+      "bbox": [
+        1908,
+        1051,
+        2371,
+        1120
+      ]
+    },
+    {
+      "campo": "provincia",
+      "confianza_yolo": 0.5482,
+      "valor_ocr": "Oropeza’",
+      "bbox": [
+        1909,
+        913,
+        2169,
+        982
+      ]
+    }
+  ],
+  "validacion": {
+    "estado": "INVALIDA",
+    "errores": [
+      "Inconsistencia aritmética: validos+blancos+nulos=767 y anfora=8517",
+      "Datos contradictorios: anfora+no_usadas=9827 y habilitados=6987"
+    ],
+    "advertencias": [
+      "Campos no leídos por OCR: candidato_1"
+    ],
+    "datos": {
+      "codigo_mesa": 1010200001003,
+      "numero_mesa": 3,
+      "candidato_1": null,
+      "candidato_2": 32,
+      "candidato_3": 52,
+      "candidato_4": 4812,
+      "votos_validos": 748,
+      "votos_blancos": 12,
+      "votos_nulos": 7,
+      "electores_habilitados": 6987,
+      "papeletas_anfora": 8517,
+      "papeletas_no_usadas": 1310,
+      "hora_apertura": 8,
+      "minuto_apertura": 1,
+      "hora_cierre": 16,
+      "minuto_cierre": 1,
+      "departamento": "-Chuquisaca_",
+      "provincia": "Oropeza’",
+      "municipio": "Yotala >",
+      "localidad": "U.lc. Padresama",
+      "recinto": "Se encuentra sobre la carretera cochabamba a Santa Cruz km 150.",
+      "acta_anulada": false,
+      "campo_roto": false,
+      "papeletas_anfora_roto": false
+    }
+  }
+}

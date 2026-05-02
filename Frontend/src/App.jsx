@@ -4,7 +4,7 @@ import MainLayout from "./components/layout/MainLayout";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import OficialPage from "./pages/oficial/OficialPage";
 import ObservadasPage from "./pages/observadas/ObservadasPage";
-import LogsPage from "./pages/logs/LogsPage";
+
 import LoginPage from "./pages/login/LoginPage";
 import MobilePdfPage from "./pages/mobile/pdf/MobilePdfPage";
 import MobileCameraPage from "./pages/mobile/camera/MobileCameraPage";

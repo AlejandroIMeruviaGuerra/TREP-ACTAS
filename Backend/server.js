@@ -8,6 +8,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+const mobileRoutes = require("./api/mobile/mobile.routes");
+app.use("/api/mobile", mobileRoutes);
 // Conexión a Supabase usando las variables de tu .env
 const supabase = createClient(process.env.NODO1_SUPABASE_URL, process.env.NODO1_SUPABASE_KEY);
 

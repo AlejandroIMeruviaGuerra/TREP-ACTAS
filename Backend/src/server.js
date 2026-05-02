@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-
+import mobileRoutes from "../api/mobile/mobile.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import catalogRoutes from "./routes/catalog.routes.js";
 import oficialRoutes from "./routes/oficial.routes.js";
@@ -41,6 +41,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/catalog", catalogRoutes);
 app.use("/api/oficial", oficialRoutes);
 app.use("/api/import", importRoutes);
+app.use("/api/mobile", mobileRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
