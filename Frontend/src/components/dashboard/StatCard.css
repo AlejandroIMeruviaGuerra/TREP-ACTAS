@@ -1,0 +1,24 @@
+.sta-card {
+  background: var(--color-card);
+  padding: 22px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+}
+
+.sta-title {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.sta-value {
+  margin: 12px 0 6px;
+  font-size: 30px;
+  color: var(--color-primary);
+}
+
+.sta-detail {
+  font-size: 13px;
+  color: var(--color-muted);
+}

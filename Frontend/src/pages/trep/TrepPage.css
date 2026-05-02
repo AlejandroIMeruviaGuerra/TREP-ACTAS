@@ -1,0 +1,64 @@
+.tre-page {
+  background: var(--color-card);
+  padding: 28px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+}
+
+.tre-page h1 {
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.tre-page p {
+  color: var(--color-muted);
+}
+
+.tre-form {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tre-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tre-field label {
+  font-weight: 700;
+}
+
+.tre-field input,
+.tre-field select,
+.tre-grid input {
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+.tre-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.tre-button {
+  width: fit-content;
+  border: none;
+  background: var(--color-primary);
+  color: white;
+  padding: 13px 18px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+}
+
+@media (max-width: 800px) {
+  .tre-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

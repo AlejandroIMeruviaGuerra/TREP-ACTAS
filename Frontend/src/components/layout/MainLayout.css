@@ -1,0 +1,25 @@
+.lay-root {
+  min-height: 100vh;
+  display: flex;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.lay-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.lay-content {
+  padding: 24px;
+}
+
+@media (max-width: 900px) {
+  .lay-root {
+    flex-direction: column;
+  }
+
+  .lay-content {
+    padding: 16px;
+  }
+}

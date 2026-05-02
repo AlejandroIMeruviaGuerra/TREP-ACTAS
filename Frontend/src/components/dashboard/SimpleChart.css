@@ -1,0 +1,42 @@
+.cha-card {
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  padding: 22px;
+}
+
+.cha-card h3 {
+  margin: 0 0 18px;
+  color: var(--color-primary);
+}
+
+.cha-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cha-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 7px;
+}
+
+.cha-label strong {
+  color: var(--color-primary);
+}
+
+.cha-bar-bg {
+  height: 12px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.cha-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-secondary);
+}
