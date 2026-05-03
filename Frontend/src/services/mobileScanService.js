@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "https://unluckily-headgear-limb.ngrok-free.dev";
+const API_URL = import.meta.env.VITE_API_URL || "https://trep-actas.onrender.com";
 
 async function uploadFile(endpoint, file, extraData = {}) {
   try {
