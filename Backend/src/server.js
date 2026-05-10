@@ -6,6 +6,8 @@ import authRoutes from "./routes/auth.routes.js";
 import catalogRoutes from "./routes/catalog.routes.js";
 import oficialRoutes from "./routes/oficial.routes.js";
 import importRoutes from "./routes/import.routes.js";
+import smsRoutes from "./routes/sms.routes.js";
+import { connectMongo } from "./config/mongoClient.js";
 
 dotenv.config();
 
@@ -42,6 +44,7 @@ app.use("/api/catalog", catalogRoutes);
 app.use("/api/oficial", oficialRoutes);
 app.use("/api/import", importRoutes);
 app.use("/api/mobile", mobileRoutes);
+app.use("/api/sms", smsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -50,6 +53,17 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend ejecutándose en http://localhost:${PORT}`);
-});
+async function startServer() {
+  try {
+    await connectMongo();
+
+    app.listen(PORT, () => {
+      console.log(`Backend ejecutándose en http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("Error iniciando servidor:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
