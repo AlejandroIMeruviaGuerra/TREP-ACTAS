@@ -6,22 +6,10 @@ import {
 import "./DashboardPage.css";
 
 const partyConfig = {
-  P1: {
-    label: "P1",
-    colorClass: "party-p1",
-  },
-  P2: {
-    label: "P2",
-    colorClass: "party-p2",
-  },
-  P3: {
-    label: "P3",
-    colorClass: "party-p3",
-  },
-  P4: {
-    label: "P4",
-    colorClass: "party-p4",
-  },
+  P1: { label: "P1", colorClass: "party-p1" },
+  P2: { label: "P2", colorClass: "party-p2" },
+  P3: { label: "P3", colorClass: "party-p3" },
+  P4: { label: "P4", colorClass: "party-p4" },
 };
 
 const boliviaDepartments = [
@@ -92,26 +80,10 @@ function getWinner(totals) {
 
 function getPartyRanking(totals) {
   return [
-    {
-      party: "P1",
-      votes: Number(totals.p1 || 0),
-      colorClass: "party-p1",
-    },
-    {
-      party: "P2",
-      votes: Number(totals.p2 || 0),
-      colorClass: "party-p2",
-    },
-    {
-      party: "P3",
-      votes: Number(totals.p3 || 0),
-      colorClass: "party-p3",
-    },
-    {
-      party: "P4",
-      votes: Number(totals.p4 || 0),
-      colorClass: "party-p4",
-    },
+    { party: "P1", votes: Number(totals.p1 || 0), colorClass: "party-p1" },
+    { party: "P2", votes: Number(totals.p2 || 0), colorClass: "party-p2" },
+    { party: "P3", votes: Number(totals.p3 || 0), colorClass: "party-p3" },
+    { party: "P4", votes: Number(totals.p4 || 0), colorClass: "party-p4" },
   ].sort((a, b) => b.votes - a.votes);
 }
 
@@ -229,17 +201,20 @@ function DashboardPage() {
     );
   }, [resumen]);
 
+  // CÁLCULO NUEVO: Total nacional para calcular porcentajes visuales
+  const totalVotosNacional = useMemo(() => {
+    return votosPorCandidato.reduce((acc, curr) => acc + Number(curr.votos), 0);
+  }, [votosPorCandidato]);
+
   const departmentResults = useMemo(() => {
     return groupByDepartment(actasDetalle);
   }, [actasDetalle]);
 
   const departmentMap = useMemo(() => {
     const map = new Map();
-
     departmentResults.forEach((item) => {
       map.set(item.departamento, item);
     });
-
     return map;
   }, [departmentResults]);
 
@@ -247,7 +222,6 @@ function DashboardPage() {
     const dynamicDepartments = departmentResults.map(
       (item) => item.departamento
     );
-
     return Array.from(new Set([...boliviaDepartments, ...dynamicDepartments]));
   }, [departmentResults]);
 
@@ -259,201 +233,218 @@ function DashboardPage() {
   );
 
   if (loading) {
-    return <div className="loading-box">Cargando dashboard...</div>;
+    return (
+      <div className="das-loading-box">
+        <svg className="mca-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+        <span>Procesando datos electorales...</span>
+      </div>
+    );
   }
 
   if (errorMessage) {
-    return <div className="error-box">{errorMessage}</div>;
+    return <div className="das-error-box">{errorMessage}</div>;
   }
 
   return (
     <div className="das-root">
-      <h2 className="page-title">Dashboard general</h2>
+      <header className="das-header">
+        <div>
+          <h2 className="page-title">Centro de Mando</h2>
+          <p className="page-description">Vista general y consolidada de actas oficiales validadas por el sistema.</p>
+        </div>
+        <button className="das-refresh-btn" onClick={loadDashboard}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+          Actualizar
+        </button>
+      </header>
 
-      <p className="page-description">
-        Resumen general usando solamente actas oficiales registradas.
-      </p>
-
-      <div className="das-grid">
-        <div className="das-card">
-          <span>Actas oficiales</span>
-          <strong>{resumen?.actas_procesadas ?? 0}</strong>
+      {/* KPI Cards Mejoradas con Íconos */}
+      <div className="das-kpi-grid">
+        <div className="das-kpi-card highlight">
+          <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+          <div className="kpi-data">
+            <span>Actas Procesadas</span>
+            <strong>{resumen?.actas_procesadas ?? 0}</strong>
+          </div>
         </div>
 
-        <div className="das-card">
-          <span>Actas oficiales en mapa</span>
-          <strong>{totalActasEnMapa}</strong>
+        <div className="das-kpi-card">
+          <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg></div>
+          <div className="kpi-data">
+            <span>Actas en Mapa</span>
+            <strong>{totalActasEnMapa}</strong>
+          </div>
         </div>
 
-        <div className="das-card">
-          <span>Mesas pendientes</span>
-          <strong>{resumen?.mesas_pendientes ?? 0}</strong>
+        <div className="das-kpi-card warning">
+          <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>
+          <div className="kpi-data">
+            <span>Mesas Pendientes / Observadas</span>
+            <strong>{(resumen?.mesas_pendientes ?? 0) + (resumen?.mesas_observadas ?? 0)}</strong>
+          </div>
         </div>
 
-        <div className="das-card">
-          <span>Mesas procesadas</span>
-          <strong>{resumen?.mesas_procesadas ?? 0}</strong>
-        </div>
-
-        <div className="das-card">
-          <span>Mesas observadas</span>
-          <strong>{resumen?.mesas_observadas ?? 0}</strong>
-        </div>
-
-        <div className="das-card">
-          <span>Votos válidos</span>
-          <strong>{resumen?.votos_validos ?? 0}</strong>
-        </div>
-
-        <div className="das-card">
-          <span>Votos blancos</span>
-          <strong>{resumen?.votos_blancos ?? 0}</strong>
-        </div>
-
-        <div className="das-card">
-          <span>Votos nulos</span>
-          <strong>{resumen?.votos_nulos ?? 0}</strong>
+        <div className="das-kpi-card success">
+          <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+          <div className="kpi-data">
+            <span>Votos Válidos</span>
+            <strong>{resumen?.votos_validos ?? 0}</strong>
+          </div>
         </div>
       </div>
 
-      <section className="das-section">
-        <h3>Colores por partido</h3>
+      {/* Leyenda Elegante */}
+      <div className="das-party-legend">
+        <span className="legend-label">Fuerzas Políticas:</span>
+        <div className="party-pill party-p1">P1 Rojo</div>
+        <div className="party-pill party-p2">P2 Azul</div>
+        <div className="party-pill party-p3">P3 Verde</div>
+        <div className="party-pill party-p4">P4 Amarillo</div>
+      </div>
 
-        <div className="das-party-legend">
-          <span className="party-pill party-p1">P1 rojo</span>
-          <span className="party-pill party-p2">P2 azul</span>
-          <span className="party-pill party-p3">P3 verde</span>
-          <span className="party-pill party-p4">P4 amarillo</span>
-        </div>
-      </section>
+      <section className="das-map-section">
+        {/* Panel Izquierdo: Mapa de Departamentos */}
+        <div className="das-panel">
+          <div className="panel-header">
+            <h3>Dominio Territorial</h3>
+            <span className="badge">Oficial</span>
+          </div>
 
-      <section className="das-section das-map-section">
-        <div>
-          <h3>Resultados oficiales por departamento</h3>
-
-          <p className="das-muted">
-            Este bloque cuenta solamente datos de actas oficiales. No usa actas
-            observadas.
-          </p>
-
-          <div className="bolivia-map">
+          <div className="bolivia-grid">
             {departmentsToRender.map((department) => {
               const data = departmentMap.get(department);
               const winner = data?.winner;
-              const winnerClass = winner
-                ? partyConfig[winner]?.colorClass
-                : "party-empty";
+              const winnerClass = winner ? partyConfig[winner]?.colorClass : "party-empty";
 
               return (
                 <button
                   key={department}
-                  className={`bolivia-dept ${winnerClass} ${
-                    selectedDepartment === department
-                      ? "bolivia-dept-selected"
-                      : ""
-                  }`}
+                  className={`dept-tile ${winnerClass} ${selectedDepartment === department ? "is-selected" : ""}`}
                   onClick={() => setSelectedDepartment(department)}
                 >
-                  <span>{department}</span>
-                  <small>
-                    {winner
-                      ? `Gana ${winner} | ${data.totalActas} actas`
-                      : "Sin actas oficiales"}
-                  </small>
+                  <span className="dept-name">{department}</span>
+                  {data ? (
+                    <div className="dept-stats">
+                      <span className="winner-tag">Gana {winner}</span>
+                      <span className="actas-tag">{data.totalActas} actas</span>
+                    </div>
+                  ) : (
+                    <span className="empty-tag">Sin datos</span>
+                  )}
                 </button>
               );
             })}
           </div>
         </div>
 
-        <div className="department-detail">
-          {!selectedDepartmentData && (
-            <>
-              <h3>Detalle departamental</h3>
-              <p>
-                Selecciona un departamento con actas oficiales para ver el
-                desglose.
-              </p>
-            </>
-          )}
-
-          {selectedDepartmentData && (
-            <>
-              <h3>{selectedDepartmentData.departamento}</h3>
-
-              <div className="department-ranking">
-                {selectedDepartmentData.ranking.map((item, index) => (
-                  <div
-                    key={item.party}
-                    className={`rank-card ${item.colorClass}`}
-                  >
-                    <span>{index + 1}° lugar</span>
-                    <strong>{item.party}</strong>
-                    <small>{item.votes.toLocaleString()} votos</small>
-                  </div>
-                ))}
+        {/* Panel Derecho: Detalle del Departamento */}
+        <div className="das-panel detail-panel">
+          {!selectedDepartmentData ? (
+            <div className="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon></svg>
+              <p>Selecciona un departamento en la cuadrícula para analizar su escrutinio.</p>
+            </div>
+          ) : (
+            <div className="detail-content animate-fade-in">
+              <div className="detail-header">
+                <h3>{selectedDepartmentData.departamento}</h3>
+                <span className="badge-dark">{selectedDepartmentData.totalActas} Actas</span>
               </div>
 
-              <p>
-                <b>Actas oficiales:</b> {selectedDepartmentData.totalActas}
-              </p>
+              {/* Ranking con Barras Visuales */}
+              <div className="department-ranking">
+                {selectedDepartmentData.ranking.map((item, index) => {
+                  // Calcular porcentaje local para la barra
+                  const totalVotosDept = selectedDepartmentData.ranking.reduce((sum, r) => sum + r.votes, 0);
+                  const percentage = totalVotosDept > 0 ? ((item.votes / totalVotosDept) * 100).toFixed(1) : 0;
 
-              <p>
-                <b>Ganador parcial:</b>{" "}
-                {selectedDepartmentData.winner || "Sin datos"}
-              </p>
+                  return (
+                    <div key={item.party} className={`rank-card ${item.colorClass}`}>
+                      <div className="rank-info">
+                        <span className="rank-pos">#{index + 1}</span>
+                        <strong>{item.party}</strong>
+                      </div>
+                      <div className="rank-stats">
+                        <span className="rank-votes">{item.votes.toLocaleString()} vts</span>
+                        <span className="rank-pct">{percentage}%</span>
+                      </div>
+                      <div className="rank-bar-bg">
+                        <div className="rank-bar-fill" style={{ width: `${percentage}%` }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
-              <h4>Provincias y municipios</h4>
-
-              <div className="province-list">
+              <h4 className="section-subtitle">Estructura Provincial</h4>
+              <div className="province-list custom-scrollbar">
                 {selectedDepartmentData.provincias.map((prov) => (
                   <div key={prov.provincia} className="province-item">
                     <div className="province-head">
                       <b>{prov.provincia}</b>
-                      <span>{prov.totalActas} actas</span>
+                      <span className="pill-actas">{prov.totalActas} actas</span>
                     </div>
-
                     <ul>
                       {prov.municipios.map((mun) => (
                         <li key={mun.municipio}>
-                          {mun.municipio}{" "}
-                          <span>{mun.totalActas} actas</span>
+                          <span className="mun-name">{mun.municipio}</span>
+                          <span className="mun-actas">{mun.totalActas} actas</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           )}
         </div>
       </section>
 
-      <section className="das-section">
-        <h3>Votos por candidato</h3>
+      {/* Tabla de Votos Consolidados */}
+      <section className="das-panel table-panel">
+        <div className="panel-header">
+          <h3>Escrutinio Nacional Consolidado</h3>
+          <span className="total-votes-badge">Total Votos: {totalVotosNacional.toLocaleString()}</span>
+        </div>
 
-        <div className="table-wrapper">
+        <div className="table-wrapper custom-scrollbar">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Posición</th>
-                <th>Candidato</th>
-                <th>Total votos</th>
+                <th>Pos.</th>
+                <th>Candidato / Partido</th>
+                <th className="text-right">Votos</th>
+                <th className="text-right">% Participación</th>
+                <th className="bar-column">Proporción Visual</th>
               </tr>
             </thead>
-
             <tbody>
-              {votosPorCandidato.map((item, index) => (
-                <tr key={item.candidato}>
-                  <td>{index + 1}°</td>
-                  <td>{item.candidato}</td>
-                  <td>{Number(item.votos || 0).toLocaleString()}</td>
-                </tr>
-              ))}
-
+              {votosPorCandidato.map((item, index) => {
+                const isWinner = index === 0 && item.votos > 0;
+                const percentage = totalVotosNacional > 0 ? ((item.votos / totalVotosNacional) * 100).toFixed(2) : 0;
+                
+                return (
+                  <tr key={item.candidato} className={isWinner ? "row-winner" : ""}>
+                    <td className="col-pos">
+                      {isWinner ? <span className="trophy">🏆</span> : `${index + 1}°`}
+                    </td>
+                    <td className="col-name">{item.candidato}</td>
+                    <td className="col-votes text-right">{Number(item.votos || 0).toLocaleString()}</td>
+                    <td className="col-pct text-right"><b>{percentage}%</b></td>
+                    <td className="bar-column">
+                      <div className="table-bar-bg">
+                        <div 
+                          className={`table-bar-fill party-${item.candidato.toLowerCase()}`} 
+                          style={{ width: `${percentage}%`, backgroundColor: isWinner ? '#9f0712' : '#9ca3af' }}
+                        ></div>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {votosPorCandidato.length === 0 && (
                 <tr>
-                  <td colSpan="3">No hay votos registrados todavía.</td>
+                  <td colSpan="5" className="empty-row">Aún no hay votos computados en el sistema.</td>
                 </tr>
               )}
             </tbody>

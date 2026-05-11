@@ -61,9 +61,7 @@ function ObservadasPage() {
       String(acta.municipio || "").toLowerCase().includes(searchValue) ||
       String(acta.nombre_recinto || "").toLowerCase().includes(searchValue) ||
       String(acta.tipo_observacion || "").toLowerCase().includes(searchValue) ||
-      String(acta.motivo_observacion || "")
-        .toLowerCase()
-        .includes(searchValue);
+      String(acta.motivo_observacion || "").toLowerCase().includes(searchValue);
 
     const matchesTipo =
       tipoFiltro === "TODAS" || acta.tipo_observacion === tipoFiltro;
@@ -134,265 +132,235 @@ function ObservadasPage() {
   }
 
   if (loading) {
-    return <div className="loading-box">Cargando actas observadas...</div>;
+    return (
+      <div className="obs-loading-box">
+        <svg className="obs-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+        <span>Recopilando actas con observaciones...</span>
+      </div>
+    );
   }
 
   if (errorMessage) {
-    return <div className="error-box">{errorMessage}</div>;
+    return <div className="obs-error-box">{errorMessage}</div>;
   }
 
   return (
     <div className="obs-root">
-      <h2 className="page-title">Actas observadas</h2>
+      <header className="obs-header">
+        <h2 className="page-title">Bandeja de Revisión</h2>
+        <p className="page-description">
+          Actas que el sistema ha marcado con inconsistencias. Requieren intervención manual para su resolución.
+        </p>
+      </header>
 
-      <p className="page-description">
-        Actas que requieren revisión manual. Para aprobar o rechazar se debe
-        tener una sesión activa.
-      </p>
-
-      <div className="obs-user-warning">
-        Usuario revisor activo: <b>{currentUser?.username}</b>
+      {/* Alerta de Usuario Estilizada */}
+      <div className="obs-user-warning animate-fade-in">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Sesión activa de revisión: <b>{currentUser?.username || "Invitado"}</b></span>
       </div>
 
-      <div className="obs-toolbar">
-        <input
-          className="obs-search"
-          type="text"
-          placeholder="Buscar por código, departamento, provincia, municipio, recinto o problema..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-
-        <select
-          className="obs-select"
-          value={tipoFiltro}
-          onChange={(event) => setTipoFiltro(event.target.value)}
-        >
-          <option value="TODAS">Todas las observaciones</option>
-          {tipos.map((tipo) => (
-            <option key={tipo} value={tipo}>
-              {tipo}
-            </option>
-          ))}
-        </select>
-
-        <button className="obs-button" onClick={loadActas}>
-          Actualizar
-        </button>
-      </div>
-
-      <div className="obs-summary">
-        <div className="obs-summary-card">
-          <span>Total pendientes</span>
-          <strong>{actas.length}</strong>
+      {/* Barra de Herramientas y KPIs */}
+      <section className="obs-control-panel">
+        <div className="obs-summary">
+          <div className="obs-summary-card">
+            <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="12" y1="18" x2="12" y2="18"></line></svg></div>
+            <div>
+              <span>Pendientes Totales</span>
+              <strong>{actas.length}</strong>
+            </div>
+          </div>
+          <div className="obs-summary-card">
+            <div className="kpi-icon highlight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></div>
+            <div>
+              <span>Vista Actual (Filtro)</span>
+              <strong>{filteredActas.length}</strong>
+            </div>
+          </div>
         </div>
 
-        <div className="obs-summary-card">
-          <span>Filtradas</span>
-          <strong>{filteredActas.length}</strong>
+        <div className="obs-toolbar">
+          <div className="obs-search-wrapper">
+            <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input
+              className="obs-search"
+              type="text"
+              placeholder="Buscar por código, ubicación o problema..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
+
+          <div className="obs-select-wrapper">
+            <select
+              className="obs-select"
+              value={tipoFiltro}
+              onChange={(event) => setTipoFiltro(event.target.value)}
+            >
+              <option value="TODAS">Todas las observaciones</option>
+              {tipos.map((tipo) => (
+                <option key={tipo} value={tipo}>{tipo}</option>
+              ))}
+            </select>
+          </div>
+
+          <button className="obs-button" onClick={loadActas}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+            Actualizar
+          </button>
         </div>
-      </div>
+      </section>
 
-      <div className="table-wrapper">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Código acta</th>
-              <th>Departamento</th>
-              <th>Provincia</th>
-              <th>Municipio</th>
-              <th>Recinto</th>
-              <th>Mesa</th>
-              <th>Problema</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredActas.map((acta) => (
-              <tr key={acta.id_observada || acta.codigo_acta}>
-                <td>{acta.codigo_acta}</td>
-                <td>{acta.departamento || "Sin departamento"}</td>
-                <td>{acta.provincia || "Sin provincia"}</td>
-                <td>{acta.municipio || "Sin municipio"}</td>
-                <td>{acta.nombre_recinto || "No encontrado"}</td>
-                <td>{acta.nro_mesa || "Sin mesa"}</td>
-                <td>
-                  <span className="badge badge-warning">
-                    {acta.tipo_observacion || "OBSERVADA"}
-                  </span>
-                </td>
-                <td>
-                  <button
-                    className="obs-review-button"
-                    onClick={() => {
-                      setSelectedActa(acta);
-                      setComentario("");
-                    }}
-                  >
-                    Revisar
-                  </button>
-                </td>
-              </tr>
-            ))}
-
-            {filteredActas.length === 0 && (
+      {/* Tabla Premium (Estilo OficialPage) */}
+      <section className="obs-table-section">
+        <div className="table-wrapper custom-scrollbar">
+          <table className="data-table">
+            <thead>
               <tr>
-                <td colSpan="8">No hay actas observadas pendientes.</td>
+                <th>Código Acta</th>
+                <th>Ubicación (Dept / Prov / Mun)</th>
+                <th>Recinto</th>
+                <th className="text-center">Mesa</th>
+                <th>Problema Detectado</th>
+                <th className="text-right">Acción</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
 
+            <tbody>
+              {filteredActas.map((acta) => (
+                <tr key={acta.id_observada || acta.codigo_acta}>
+                  <td className="obs-mono">{acta.codigo_acta}</td>
+                  <td>
+                    <div className="location-stack">
+                      <b>{acta.departamento || "N/A"}</b>
+                      <span>{acta.provincia} • {acta.municipio}</span>
+                    </div>
+                  </td>
+                  <td className="obs-truncate" title={acta.nombre_recinto}>{acta.nombre_recinto || "No encontrado"}</td>
+                  <td className="text-center"><strong>{acta.nro_mesa || "-"}</strong></td>
+                  <td>
+                    <span className="obs-badge badge-warning" title={acta.motivo_observacion}>
+                      {acta.tipo_observacion || "OBSERVADA"}
+                    </span>
+                  </td>
+                  <td className="text-right">
+                    <button
+                      className="obs-review-button"
+                      onClick={() => {
+                        setSelectedActa(acta);
+                        setComentario("");
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      Revisar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+
+              {filteredActas.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="obs-empty-row">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    No hay actas observadas que coincidan con los filtros actuales.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Modal de Resolución (Nivel Auditoría) */}
       {selectedActa && (
-        <div className="obs-modal-backdrop">
+        <div className="obs-modal-backdrop animate-fade-in">
           <div className="obs-modal">
             <div className="obs-modal-header">
-              <div>
-                <h3>Revisión de acta observada</h3>
-                <p>Código de acta: {selectedActa.codigo_acta}</p>
+              <div className="obs-modal-title-group">
+                <div className="obs-modal-icon warning-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </div>
+                <div>
+                  <h3>Resolución de Acta</h3>
+                  <p>ID de Sistema: <span className="obs-mono">{selectedActa.codigo_acta}</span></p>
+                </div>
+              </div>
+              <button className="obs-modal-close" onClick={() => setSelectedActa(null)} title="Cerrar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <div className="obs-modal-body custom-scrollbar">
+              {/* ALERTA DEL PROBLEMA - Destacado en la parte superior */}
+              <div className="obs-problem-alert">
+                <h4>Detalle de la Observación</h4>
+                <div className="problem-details">
+                  <p><strong>Tipo:</strong> {selectedActa.tipo_observacion}</p>
+                  <p><strong>Motivo del Sistema:</strong> {selectedActa.motivo_observacion}</p>
+                  {selectedActa.observaciones && (
+                    <p><strong>Nota del Operador:</strong> {selectedActa.observaciones}</p>
+                  )}
+                  <p className="problem-meta">Registrado el {selectedActa.fecha_registro ? new Date(selectedActa.fecha_registro).toLocaleString() : "Sin fecha"}</p>
+                </div>
               </div>
 
-              <button
-                className="obs-modal-close"
-                onClick={() => setSelectedActa(null)}
-              >
-                ×
-              </button>
-            </div>
+              <div className="obs-modal-grid">
+                <section className="obs-modal-section">
+                  <h4>Ubicación de la Mesa</h4>
+                  <div className="modal-data-list">
+                    <div className="data-row"><span>Departamento:</span> <b>{selectedActa.departamento || "N/A"}</b></div>
+                    <div className="data-row"><span>Provincia:</span> <b>{selectedActa.provincia || "N/A"}</b></div>
+                    <div className="data-row"><span>Municipio:</span> <b>{selectedActa.municipio || "N/A"}</b></div>
+                    <div className="data-row highlight-row"><span>Recinto:</span> <b>{selectedActa.nombre_recinto || "N/A"}</b></div>
+                    <div className="data-row big-row"><span>Nro. de Mesa:</span> <strong>{selectedActa.nro_mesa || "N/A"}</strong></div>
+                  </div>
+                </section>
 
-            <div className="obs-modal-grid">
-              <section className="obs-modal-section">
-                <h4>Ubicación</h4>
-                <p>
-                  <b>Departamento:</b>{" "}
-                  {selectedActa.departamento || "No definido"}
-                </p>
-                <p>
-                  <b>Provincia:</b> {selectedActa.provincia || "No definido"}
-                </p>
-                <p>
-                  <b>Municipio:</b> {selectedActa.municipio || "No definido"}
-                </p>
-                <p>
-                  <b>Código territorial:</b>{" "}
-                  {selectedActa.codigo_territorial || "No definido"}
-                </p>
-                <p>
-                  <b>Recinto:</b>{" "}
-                  {selectedActa.nombre_recinto || "No encontrado"}
-                </p>
-                <p>
-                  <b>Dirección:</b>{" "}
-                  {selectedActa.direccion_recinto || "Sin dirección"}
-                </p>
-                <p>
-                  <b>Código recinto:</b>{" "}
-                  {selectedActa.codigo_recinto || "No definido"}
-                </p>
-                <p>
-                  <b>Nro mesa:</b> {selectedActa.nro_mesa || "No definido"}
-                </p>
-              </section>
+                <section className="obs-modal-section">
+                  <h4>Cuadratura del Acta</h4>
+                  <div className="modal-data-list">
+                    <div className="data-row"><span>Habilitados:</span> <b>{selectedActa.votantes_habilitados}</b></div>
+                    <div className="data-row"><span>En Ánfora:</span> <b>{selectedActa.papeletas_anfora}</b></div>
+                    <div className="data-row"><span>No Utilizadas:</span> <b>{selectedActa.papeletas_no_utilizadas}</b></div>
+                    <hr className="modal-divider"/>
+                    <div className="data-row"><span>Votos Válidos:</span> <strong>{selectedActa.votos_validos}</strong></div>
+                    <div className="data-row"><span>Blancos:</span> <strong>{selectedActa.votos_blancos}</strong></div>
+                    <div className="data-row"><span>Nulos:</span> <strong>{selectedActa.votos_nulos}</strong></div>
+                  </div>
+                </section>
 
-              <section className="obs-modal-section">
-                <h4>Datos del acta</h4>
-                <p>
-                  <b>Votantes habilitados:</b>{" "}
-                  {selectedActa.votantes_habilitados}
-                </p>
-                <p>
-                  <b>Papeletas ánfora:</b> {selectedActa.papeletas_anfora}
-                </p>
-                <p>
-                  <b>Papeletas no utilizadas:</b>{" "}
-                  {selectedActa.papeletas_no_utilizadas}
-                </p>
-                <p>
-                  <b>Votos válidos:</b> {selectedActa.votos_validos}
-                </p>
-                <p>
-                  <b>Votos blancos:</b> {selectedActa.votos_blancos}
-                </p>
-                <p>
-                  <b>Votos nulos:</b> {selectedActa.votos_nulos}
-                </p>
-                <p>
-                  <b>Apertura:</b>{" "}
-                  {formatHour(
-                    selectedActa.apertura_hora,
-                    selectedActa.apertura_minutos
-                  )}
-                </p>
-                <p>
-                  <b>Cierre:</b>{" "}
-                  {formatHour(
-                    selectedActa.cierre_hora,
-                    selectedActa.cierre_minutos
-                  )}
-                </p>
-              </section>
+                <section className="obs-modal-section full-width">
+                  <h4>Distribución de Votos</h4>
+                  <div className="obs-votes-grid">
+                    <div className="vote-box vote-p1"><span>P1</span><strong>{selectedActa.p1}</strong></div>
+                    <div className="vote-box vote-p2"><span>P2</span><strong>{selectedActa.p2}</strong></div>
+                    <div className="vote-box vote-p3"><span>P3</span><strong>{selectedActa.p3}</strong></div>
+                    <div className="vote-box vote-p4"><span>P4</span><strong>{selectedActa.p4}</strong></div>
+                  </div>
+                </section>
+              </div>
 
-              <section className="obs-modal-section">
-                <h4>Votos por partido</h4>
-                <div className="obs-votes-grid">
-                  <div className="vote-box vote-p1">P1: {selectedActa.p1}</div>
-                  <div className="vote-box vote-p2">P2: {selectedActa.p2}</div>
-                  <div className="vote-box vote-p3">P3: {selectedActa.p3}</div>
-                  <div className="vote-box vote-p4">P4: {selectedActa.p4}</div>
+              {/* Caja de Decisión Final */}
+              <div className="obs-decision-area">
+                <div className="obs-comment-box">
+                  <label htmlFor="resolucion_comment">Justificación de Resolución (Obligatorio para rechazar)</label>
+                  <textarea
+                    id="resolucion_comment"
+                    value={comentario}
+                    onChange={(event) => setComentario(event.target.value)}
+                    placeholder="Escriba los motivos de la aprobación o rechazo de esta acta..."
+                  />
                 </div>
-              </section>
 
-              <section className="obs-modal-section obs-problem">
-                <h4>Problema detectado</h4>
-                <p>
-                  <b>Tipo:</b> {selectedActa.tipo_observacion}
-                </p>
-                <p>
-                  <b>Motivo:</b> {selectedActa.motivo_observacion}
-                </p>
-                <p>
-                  <b>Observación original:</b>{" "}
-                  {selectedActa.observaciones || "Sin observación textual"}
-                </p>
-                <p>
-                  <b>Fecha registro:</b>{" "}
-                  {selectedActa.fecha_registro
-                    ? new Date(selectedActa.fecha_registro).toLocaleString()
-                    : "Sin fecha"}
-                </p>
-                <p>
-                  <b>Revisor:</b> {currentUser?.username}
-                </p>
-              </section>
-            </div>
-
-            <div className="obs-comment-box">
-              <label>Comentario de revisión</label>
-              <textarea
-                value={comentario}
-                onChange={(event) => setComentario(event.target.value)}
-                placeholder="Escribe una justificación breve para aprobar o rechazar..."
-              />
-            </div>
-
-            <div className="obs-modal-actions">
-              <button
-                className="obs-reject"
-                onClick={handleRechazar}
-                disabled={processing}
-              >
-                Rechazar
-              </button>
-
-              <button
-                className="obs-approve"
-                onClick={handleAprobar}
-                disabled={processing}
-              >
-                Aprobar y pasar a oficiales
-              </button>
+                <div className="obs-modal-actions">
+                  <button className="obs-btn-reject" onClick={handleRechazar} disabled={processing}>
+                    {processing ? "Procesando..." : "Anular / Rechazar Acta"}
+                  </button>
+                  <button className="obs-btn-approve" onClick={handleAprobar} disabled={processing}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    {processing ? "Guardando..." : "Validar e Integrar al Conteo"}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
