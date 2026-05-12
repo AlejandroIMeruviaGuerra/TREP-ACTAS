@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "https://trep-actas.onrender.com";
 
 async function request(endpoint, options = {}) {
   const url = `${API_URL}${endpoint}`;
