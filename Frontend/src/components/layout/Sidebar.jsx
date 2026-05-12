@@ -3,8 +3,12 @@ import image from "../../assets/Logo_oep.png";
 
 const menuItems = [
   {
-    id: "dashboard",
-    label: "Dashboard",
+    id: "dashboard-oficial",
+    label: "Dashboard Oficial",
+  },
+  {
+    id: "dashboard-conteo",
+    label: "Dashboard Rápido",
   },
   {
     id: "oficial",

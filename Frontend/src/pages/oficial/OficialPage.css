@@ -268,3 +268,56 @@
   .ofi-modal { border-radius: 16px 16px 0 0; max-height: 95vh; margin-top: auto; }
   .ofi-modal-backdrop { padding: 40px 0 0 0; align-items: flex-end; }
 }
+/* Estilos para el header con botón */
+.ofi-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* Botón Crear Acta */
+.ofi-create-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ofi-create-button:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ofi-create-button:active {
+  transform: translateY(0);
+}
+
+.ofi-create-button svg {
+  stroke: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ofi-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .ofi-create-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -88,6 +88,54 @@ function sumNumbers(items, key) {
   return items.reduce((total, item) => total + Number(item[key] || 0), 0);
 }
 
+function manualToInt(value, fieldName, errors) {
+  if (value === undefined || value === null || value === "") {
+    errors.push(`${fieldName} es obligatorio.`);
+    return 0;
+  }
+
+  const numberValue = Number(value);
+
+  if (Number.isNaN(numberValue)) {
+    errors.push(`${fieldName} debe ser numérico.`);
+    return 0;
+  }
+
+  if (!Number.isInteger(numberValue)) {
+    errors.push(`${fieldName} debe ser un número entero.`);
+    return 0;
+  }
+
+  if (numberValue < 0) {
+    errors.push(`${fieldName} no puede ser negativo.`);
+    return 0;
+  }
+
+  return numberValue;
+}
+
+function isValidHour(hour, minute) {
+  return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+}
+
+async function saveManualValidationLog(
+  codigoActa,
+  tipoError,
+  detalle,
+  datosCrudos
+) {
+  try {
+    await supabase.from("logs_inconsistencias").insert({
+      codigo_acta: codigoActa || null,
+      tipo_error: tipoError,
+      detalle_error: detalle,
+      datos_crudos: datosCrudos,
+    });
+  } catch (error) {
+    console.error("No se pudo guardar log manual:", error.message);
+  }
+}
+
 export async function insertOfficialActa(req, res) {
   try {
     const result = await processOfficialActa(req.body, "API_MANUAL");
@@ -292,6 +340,8 @@ export async function getObservedActasDetalle(req, res) {
 
 export async function approveObservedActa(req, res) {
   const { codigoActa } = req.params;
+  const usuarioRevision =
+    req.body?.usuario_revision || req.body?.usuario || "frontend_admin";
 
   const { data: observada, error: observedError } = await supabase
     .from("actas_observadas")
@@ -389,7 +439,7 @@ export async function approveObservedActa(req, res) {
       .update({
         estado_observacion: "APROBADA",
         fecha_revision: new Date().toISOString(),
-        usuario_revision: "frontend_admin",
+        usuario_revision: usuarioRevision,
         comentario_revision:
           req.body?.comentario || "Acta aprobada desde frontend",
       })
@@ -413,7 +463,7 @@ export async function approveObservedActa(req, res) {
         codigo_acta: observada.codigo_acta,
         comentario: req.body?.comentario || null,
       },
-      usuario_sistema: "frontend_admin",
+      usuario_sistema: usuarioRevision,
     });
 
     return res.json({
@@ -431,6 +481,8 @@ export async function approveObservedActa(req, res) {
 
 export async function rejectObservedActa(req, res) {
   const { codigoActa } = req.params;
+  const usuarioRevision =
+    req.body?.usuario_revision || req.body?.usuario || "frontend_admin";
 
   const { data: observada, error: observedError } = await supabase
     .from("actas_observadas")
@@ -458,7 +510,7 @@ export async function rejectObservedActa(req, res) {
     .update({
       estado_observacion: "RECHAZADA",
       fecha_revision: new Date().toISOString(),
-      usuario_revision: "frontend_admin",
+      usuario_revision: usuarioRevision,
       comentario_revision:
         req.body?.comentario || "Acta rechazada desde frontend",
     })
@@ -486,7 +538,7 @@ export async function rejectObservedActa(req, res) {
       codigo_acta: Number(codigoActa),
       comentario: req.body?.comentario || null,
     },
-    usuario_sistema: "frontend_admin",
+    usuario_sistema: usuarioRevision,
   });
 
   return res.json({
@@ -513,12 +565,12 @@ export async function getOfficialSummary(req, res) {
       votosPorCandidatoMap[candidato] += Number(voto.votos || 0);
     }
 
-    const votosPorCandidato = Object.entries(votosPorCandidatoMap).map(
-      ([candidato, total]) => ({
+    const votosPorCandidato = Object.entries(votosPorCandidatoMap)
+      .map(([candidato, total]) => ({
         candidato,
         votos: total,
-      })
-    );
+      }))
+      .sort((a, b) => b.votos - a.votos);
 
     const mesasPendientes = (mesas || []).filter(
       (mesa) => mesa.estado_acta === "PENDIENTE"
@@ -604,6 +656,478 @@ export async function getOfficialEvents(req, res) {
     return res.status(500).json({
       ok: false,
       message: "Error obteniendo eventos",
+      error: error.message,
+    });
+  }
+}
+
+export async function getOfficialCatalog(req, res) {
+  try {
+    const territorios = await fetchAllRows("territorios", "*", {
+      orders: [
+        { column: "departamento", ascending: true },
+        { column: "provincia", ascending: true },
+        { column: "municipio", ascending: true },
+      ],
+    });
+
+    const recintos = await fetchAllRows("recintos", "*", {
+      orders: [{ column: "nombre_recinto", ascending: true }],
+    });
+
+    const territorioMap = new Map();
+
+    territorios.forEach((territorio) => {
+      territorioMap.set(Number(territorio.codigo_territorial), territorio);
+    });
+
+    const recintosDetalle = recintos.map((recinto) => {
+      const territorio = territorioMap.get(Number(recinto.codigo_territorial));
+
+      return {
+        ...recinto,
+        departamento: territorio?.departamento || "Sin departamento",
+        provincia: territorio?.provincia || "Sin provincia",
+        municipio: territorio?.municipio || "Sin municipio",
+      };
+    });
+
+    return res.json({
+      ok: true,
+      data: {
+        territorios,
+        recintos: recintosDetalle,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      message: "Error obteniendo catálogo oficial",
+      error: error.message,
+    });
+  }
+}
+
+export async function createOfficialMesaAndActa(req, res) {
+  const errors = [];
+
+  const usuarioRevision =
+    req.body?.usuario_revision ||
+    req.body?.usuario ||
+    req.headers["x-user-name"];
+
+  if (!usuarioRevision || String(usuarioRevision).trim().length < 3) {
+    errors.push("Debe existir un usuario activo para crear una acta oficial.");
+  }
+
+  const codigoRecinto = manualToInt(
+    req.body.codigo_recinto,
+    "Código de recinto",
+    errors
+  );
+
+  const votantesHabilitados = manualToInt(
+    req.body.votantes_habilitados,
+    "Votantes habilitados",
+    errors
+  );
+
+  const p1 = manualToInt(req.body.p1, "Votos P1", errors);
+  const p2 = manualToInt(req.body.p2, "Votos P2", errors);
+  const p3 = manualToInt(req.body.p3, "Votos P3", errors);
+  const p4 = manualToInt(req.body.p4, "Votos P4", errors);
+
+  const votosBlancos = manualToInt(
+    req.body.votos_blancos,
+    "Votos blancos",
+    errors
+  );
+
+  const votosNulos = manualToInt(
+    req.body.votos_nulos,
+    "Votos nulos",
+    errors
+  );
+
+  const aperturaHora = manualToInt(
+    req.body.apertura_hora,
+    "Hora de apertura",
+    errors
+  );
+
+  const aperturaMinutos = manualToInt(
+    req.body.apertura_minutos,
+    "Minutos de apertura",
+    errors
+  );
+
+  const cierreHora = manualToInt(
+    req.body.cierre_hora,
+    "Hora de cierre",
+    errors
+  );
+
+  const cierreMinutos = manualToInt(
+    req.body.cierre_minutos,
+    "Minutos de cierre",
+    errors
+  );
+
+  if (votantesHabilitados <= 0) {
+    errors.push("Los votantes habilitados deben ser mayores a 0.");
+  }
+
+  const votosValidos = p1 + p2 + p3 + p4;
+  const papeletasAnfora = votosValidos + votosBlancos + votosNulos;
+  const papeletasNoUtilizadas = votantesHabilitados - papeletasAnfora;
+
+  if (papeletasAnfora > votantesHabilitados) {
+    errors.push(
+      `La suma de votos válidos + blancos + nulos no puede superar los votantes habilitados. Votantes: ${votantesHabilitados}, asignados: ${papeletasAnfora}.`
+    );
+  }
+
+  if (papeletasNoUtilizadas < 0) {
+    errors.push(
+      "Las papeletas no utilizadas no pueden quedar en negativo. Revisa la distribución de votos."
+    );
+  }
+
+  const camposLimitadosPorVotantes = [
+    { nombre: "P1", valor: p1 },
+    { nombre: "P2", valor: p2 },
+    { nombre: "P3", valor: p3 },
+    { nombre: "P4", valor: p4 },
+    { nombre: "Votos blancos", valor: votosBlancos },
+    { nombre: "Votos nulos", valor: votosNulos },
+  ];
+
+  for (const campo of camposLimitadosPorVotantes) {
+    if (campo.valor > votantesHabilitados) {
+      errors.push(
+        `${campo.nombre} no puede ser mayor que votantes habilitados.`
+      );
+    }
+  }
+
+  if (!isValidHour(aperturaHora, aperturaMinutos)) {
+    errors.push("La hora de apertura no es válida.");
+  }
+
+  if (!isValidHour(cierreHora, cierreMinutos)) {
+    errors.push("La hora de cierre no es válida.");
+  }
+
+  const aperturaTotalMinutos = aperturaHora * 60 + aperturaMinutos;
+  const cierreTotalMinutos = cierreHora * 60 + cierreMinutos;
+
+  if (
+    isValidHour(aperturaHora, aperturaMinutos) &&
+    isValidHour(cierreHora, cierreMinutos) &&
+    cierreTotalMinutos <= aperturaTotalMinutos
+  ) {
+    errors.push("La hora de cierre debe ser posterior a la hora de apertura.");
+  }
+
+  if (errors.length > 0) {
+    await saveManualValidationLog(
+      null,
+      "ERROR_CREACION_MANUAL",
+      errors.join(" | "),
+      req.body
+    );
+
+    return res.status(400).json({
+      ok: false,
+      message: "No se pudo crear el acta por errores de validación.",
+      errors,
+    });
+  }
+
+  const { data: recinto, error: recintoError } = await supabase
+    .from("recintos")
+    .select("*")
+    .eq("codigo_recinto", codigoRecinto)
+    .maybeSingle();
+
+  if (recintoError) {
+    return res.status(500).json({
+      ok: false,
+      message: "Error buscando el recinto.",
+      error: recintoError.message,
+    });
+  }
+
+  if (!recinto) {
+    await saveManualValidationLog(
+      null,
+      "RECINTO_NO_EXISTE",
+      "El recinto seleccionado no existe en la base de datos.",
+      req.body
+    );
+
+    return res.status(400).json({
+      ok: false,
+      message: "El recinto seleccionado no existe.",
+    });
+  }
+
+  const { data: territorio, error: territorioError } = await supabase
+    .from("territorios")
+    .select("*")
+    .eq("codigo_territorial", recinto.codigo_territorial)
+    .maybeSingle();
+
+  if (territorioError) {
+    return res.status(500).json({
+      ok: false,
+      message: "Error buscando el territorio del recinto.",
+      error: territorioError.message,
+    });
+  }
+
+  if (!territorio) {
+    await saveManualValidationLog(
+      null,
+      "TERRITORIO_NO_EXISTE",
+      "El recinto existe, pero no tiene un territorio válido asociado.",
+      req.body
+    );
+
+    return res.status(400).json({
+      ok: false,
+      message: "El recinto no tiene un territorio válido asociado.",
+    });
+  }
+
+  const { data: ultimaMesa, error: ultimaMesaError } = await supabase
+    .from("mesas")
+    .select("nro_mesa")
+    .eq("codigo_recinto", codigoRecinto)
+    .order("nro_mesa", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (ultimaMesaError) {
+    return res.status(500).json({
+      ok: false,
+      message: "Error calculando el número automático de mesa.",
+      error: ultimaMesaError.message,
+    });
+  }
+
+  const maxMesaEnTabla = Number(ultimaMesa?.nro_mesa || 0);
+  const maxMesaEnRecinto = Number(recinto.num_mesas || 0);
+
+  const nroMesa = Math.max(maxMesaEnTabla, maxMesaEnRecinto) + 1;
+  const codigoActa = codigoRecinto * 1000 + nroMesa;
+
+  const { data: mesaExistente, error: mesaExistenteError } = await supabase
+    .from("mesas")
+    .select("codigo_acta")
+    .eq("codigo_acta", codigoActa)
+    .maybeSingle();
+
+  if (mesaExistenteError) {
+    return res.status(500).json({
+      ok: false,
+      message: "Error verificando si la mesa ya existe.",
+      error: mesaExistenteError.message,
+    });
+  }
+
+  if (mesaExistente) {
+    await saveManualValidationLog(
+      codigoActa,
+      "MESA_DUPLICADA",
+      "Ya existe una mesa con ese código de acta.",
+      req.body
+    );
+
+    return res.status(409).json({
+      ok: false,
+      message: "Ya existe una mesa con ese número en el recinto seleccionado.",
+    });
+  }
+
+  const { data: actaExistente, error: actaExistenteError } = await supabase
+    .from("actas_oficiales")
+    .select("codigo_acta")
+    .eq("codigo_acta", codigoActa)
+    .maybeSingle();
+
+  if (actaExistenteError) {
+    return res.status(500).json({
+      ok: false,
+      message: "Error verificando si el acta ya existe.",
+      error: actaExistenteError.message,
+    });
+  }
+
+  if (actaExistente) {
+    await saveManualValidationLog(
+      codigoActa,
+      "ACTA_DUPLICADA",
+      "Ya existe una acta oficial con ese código.",
+      req.body
+    );
+
+    return res.status(409).json({
+      ok: false,
+      message: "Ya existe una acta oficial con ese código.",
+    });
+  }
+
+  let createdMesa = false;
+  let createdActa = false;
+
+  try {
+    const { error: insertMesaError } = await supabase.from("mesas").insert({
+      codigo_acta: codigoActa,
+      codigo_recinto: codigoRecinto,
+      nro_mesa: nroMesa,
+      votantes_habilitados: votantesHabilitados,
+      estado_acta: "PROCESADA",
+    });
+
+    if (insertMesaError) {
+      throw new Error(insertMesaError.message);
+    }
+
+    createdMesa = true;
+
+    const { error: insertActaError } = await supabase
+      .from("actas_oficiales")
+      .insert({
+        codigo_acta: codigoActa,
+        papeletas_anfora: papeletasAnfora,
+        papeletas_no_utilizadas: papeletasNoUtilizadas,
+        votos_validos: votosValidos,
+        votos_blancos: votosBlancos,
+        votos_nulos: votosNulos,
+        apertura_hora: aperturaHora,
+        apertura_minutos: aperturaMinutos,
+        cierre_hora: cierreHora,
+        cierre_minutos: cierreMinutos,
+        observaciones: req.body.observaciones || null,
+      });
+
+    if (insertActaError) {
+      throw new Error(insertActaError.message);
+    }
+
+    createdActa = true;
+
+    const votosRows = [
+      {
+        codigo_acta: codigoActa,
+        candidato: "P1",
+        votos: p1,
+      },
+      {
+        codigo_acta: codigoActa,
+        candidato: "P2",
+        votos: p2,
+      },
+      {
+        codigo_acta: codigoActa,
+        candidato: "P3",
+        votos: p3,
+      },
+      {
+        codigo_acta: codigoActa,
+        candidato: "P4",
+        votos: p4,
+      },
+    ];
+
+    const { error: insertVotosError } = await supabase
+      .from("votos_candidatos_oficial")
+      .insert(votosRows);
+
+    if (insertVotosError) {
+      throw new Error(insertVotosError.message);
+    }
+
+    const { error: updateRecintoError } = await supabase
+      .from("recintos")
+      .update({
+        num_mesas: nroMesa,
+      })
+      .eq("codigo_recinto", codigoRecinto);
+
+    if (updateRecintoError) {
+      throw new Error(updateRecintoError.message);
+    }
+
+    await supabase.from("event_store_oficial").insert({
+      entidad_id: codigoActa,
+      tipo_evento: "ACTA_OFICIAL_CREADA_MANUALMENTE",
+      payload: {
+        codigo_acta: codigoActa,
+        codigo_recinto: codigoRecinto,
+        nro_mesa: nroMesa,
+        votantes_habilitados: votantesHabilitados,
+        votos_validos: votosValidos,
+        votos_blancos: votosBlancos,
+        votos_nulos: votosNulos,
+        papeletas_anfora: papeletasAnfora,
+        papeletas_no_utilizadas: papeletasNoUtilizadas,
+        departamento: territorio.departamento,
+        provincia: territorio.provincia,
+        municipio: territorio.municipio,
+        recinto: recinto.nombre_recinto,
+        usuario_revision: usuarioRevision,
+      },
+      usuario_sistema: usuarioRevision,
+    });
+
+    return res.status(201).json({
+      ok: true,
+      message: "Mesa y acta oficial creadas correctamente.",
+      data: {
+        codigo_acta: codigoActa,
+        codigo_recinto: codigoRecinto,
+        nro_mesa: nroMesa,
+        votantes_habilitados: votantesHabilitados,
+        votos_validos: votosValidos,
+        votos_blancos: votosBlancos,
+        votos_nulos: votosNulos,
+        papeletas_anfora: papeletasAnfora,
+        papeletas_no_utilizadas: papeletasNoUtilizadas,
+        departamento: territorio.departamento,
+        provincia: territorio.provincia,
+        municipio: territorio.municipio,
+        recinto: recinto.nombre_recinto,
+      },
+    });
+  } catch (error) {
+    if (createdActa) {
+      await supabase
+        .from("votos_candidatos_oficial")
+        .delete()
+        .eq("codigo_acta", codigoActa);
+
+      await supabase
+        .from("actas_oficiales")
+        .delete()
+        .eq("codigo_acta", codigoActa);
+    }
+
+    if (createdMesa) {
+      await supabase.from("mesas").delete().eq("codigo_acta", codigoActa);
+    }
+
+    await saveManualValidationLog(
+      codigoActa,
+      "ERROR_INSERCION_MANUAL",
+      error.message,
+      req.body
+    );
+
+    return res.status(500).json({
+      ok: false,
+      message: "Error creando mesa y acta oficial.",
       error: error.message,
     });
   }

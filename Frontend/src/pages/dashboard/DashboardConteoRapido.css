@@ -1,0 +1,436 @@
+/* Dashboard Conteo Rápido - Estilos exclusivos (prefijo dbcr-) */
+
+/* BASE Y LAYOUT */
+.dbcr-root {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #111827;
+}
+
+.dbcr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.dbcr-page-title {
+  margin: 0 0 6px;
+  font-size: 32px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.5px;
+}
+
+.dbcr-page-description {
+  margin: 0;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.dbcr-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.2s;
+}
+
+.dbcr-refresh-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.dbcr-refresh-btn svg { width: 16px; height: 16px; }
+
+/* KPI CARDS */
+.dbcr-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.dbcr-kpi-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: transform 0.2s;
+}
+
+.dbcr-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+.dbcr-kpi-card.highlight { border-top: 4px solid #9f0712; }
+.dbcr-kpi-card.warning { border-top: 4px solid #f59e0b; }
+.dbcr-kpi-card.success { border-top: 4px solid #10b981; }
+
+.dbcr-kpi-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: #f3f4f6;
+  display: grid;
+  place-items: center;
+  color: #4b5563;
+}
+
+.highlight .dbcr-kpi-icon { background: #fff1f2; color: #9f0712; }
+.warning .dbcr-kpi-icon { background: #fef3c7; color: #d97706; }
+.success .dbcr-kpi-icon { background: #d1fae5; color: #059669; }
+.dbcr-kpi-icon svg { width: 26px; height: 26px; }
+
+.dbcr-kpi-data span {
+  display: block;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.dbcr-kpi-data strong {
+  display: block;
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+}
+
+.dbcr-kpi-data small {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* PANELES GENERALES */
+.dbcr-panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.dbcr-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.dbcr-panel-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.dbcr-total-votes-badge {
+  background: #f3f4f6;
+  color: #111827;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* OCR Stats Grid */
+.dbcr-ocr-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.dbcr-ocr-stat-card {
+  background: #f9fafb;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+  transition: transform 0.2s;
+}
+
+.dbcr-ocr-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.dbcr-ocr-stat-card .dbcr-estado-label {
+  display: block;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.dbcr-ocr-stat-card strong {
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
+}
+
+/* TABLA PRINCIPAL */
+.dbcr-table-panel {
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+.dbcr-table-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+  margin: 0 -24px;
+}
+
+.dbcr-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.dbcr-data-table th {
+  background: #f9fafb;
+  padding: 16px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.dbcr-data-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 15px;
+  color: #111827;
+}
+
+.dbcr-data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.dbcr-data-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.dbcr-row-winner {
+  background: #fff1f2 !important;
+}
+
+.dbcr-row-winner td {
+  color: #9f0712;
+  font-weight: 600;
+}
+
+.dbcr-text-right {
+  text-align: right;
+}
+
+.dbcr-col-pos {
+  width: 60px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.dbcr-col-name {
+  font-weight: 600;
+}
+
+.dbcr-col-pct b {
+  background: rgba(0,0,0,0.05);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Barras de progreso en tabla */
+.dbcr-bar-column {
+  width: 30%;
+  min-width: 150px;
+}
+
+.dbcr-table-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dbcr-table-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease-out;
+}
+
+.dbcr-table-bar-fill.party-p1 { background: #9f0712; }
+.dbcr-table-bar-fill.party-p2 { background: #2563eb; }
+.dbcr-table-bar-fill.party-p3 { background: #16a34a; }
+.dbcr-table-bar-fill.party-p4 { background: #ca8a04; }
+
+/* Tabla compacta para SMS */
+.dbcr-data-table.compact th,
+.dbcr-data-table.compact td {
+  padding: 12px 16px;
+}
+
+.dbcr-sms-body {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #6b7280;
+}
+
+/* Badges de estado */
+.dbcr-estado-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dbcr-estado-pendiente {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.dbcr-estado-procesado {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.dbcr-estado-error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Loading y Error states */
+.dbcr-loading-box {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.dbcr-spinner {
+  width: 48px;
+  height: 48px;
+  animation: dbcr-spin 1s linear infinite;
+}
+
+@keyframes dbcr-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dbcr-error-box {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.dbcr-empty-row {
+  text-align: center;
+  color: #9ca3af;
+  padding: 48px !important;
+}
+
+/* Scrollbar personalizada */
+.dbcr-custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dbcr-custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dbcr-custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.dbcr-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Animación fade in */
+@keyframes dbcr-fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dbcr-animate-fade-in {
+  animation: dbcr-fadeIn 0.4s ease;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .dbcr-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .dbcr-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .dbcr-bar-column {
+    display: none;
+  }
+  
+  .dbcr-data-table th:nth-child(5),
+  .dbcr-data-table td:nth-child(5) {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .dbcr-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dbcr-root {
+    padding: 16px 12px;
+  }
+  
+  .dbcr-page-title {
+    font-size: 24px;
+  }
+}

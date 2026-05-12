@@ -11,7 +11,7 @@ function formatHour(hour, minutes) {
   return `${hour}:${String(minutes ?? 0).padStart(2, "0")}`;
 }
 
-function OficialPage() {
+function OficialPage({ onCreate }) {  // ← AGREGADO: Recibir onCreate como prop
   const [actas, setActas] = useState([]);
   const [selectedActa, setSelectedActa] = useState(null);
 
@@ -134,8 +134,26 @@ function OficialPage() {
   return (
     <div className="ofi-root">
       <header className="ofi-header">
-        <h2 className="page-title">Archivo Oficial de Actas</h2>
-        <p className="page-description">Buscador y visor detallado de mesas procesadas e integradas al escrutinio final.</p>
+        <div className="ofi-header-content">  {/* ← AGREGADO: Wrapper para flex */}
+          <div>
+            <h2 className="page-title">Archivo Oficial de Actas</h2>
+            <p className="page-description">Buscador y visor detallado de mesas procesadas e integradas al escrutinio final.</p>
+          </div>
+          
+          {/* ← AGREGADO: Botón Crear Acta */}
+          {onCreate && (
+            <button 
+              className="ofi-create-button" 
+              onClick={onCreate}
+              title="Crear nueva acta oficial"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span>Crear acta</span>
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Panel de Filtros Estilizado */}
