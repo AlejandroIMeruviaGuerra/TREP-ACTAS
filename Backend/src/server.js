@@ -62,7 +62,12 @@ app.use((req, res) => {
 // Inicio del servidor con conexión a MongoDB
 async function startServer() {
   try {
-    await connectMongo();
+    // 1. Guardamos el resultado de la conexión en una variable
+    const dbInstance = await connectMongo(); 
+    
+    // 2. Le inyectamos la base de datos a Express (¡LA LÍNEA MÁGICA!)
+    app.locals.db = dbInstance; 
+
     console.log("✅ Conexión a MongoDB establecida");
     
     app.listen(PORT, () => {
