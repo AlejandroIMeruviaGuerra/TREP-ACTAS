@@ -675,10 +675,32 @@ export async function getOfficialCatalog(req, res) {
       orders: [{ column: "nombre_recinto", ascending: true }],
     });
 
+    const mesas = await fetchAllRows("mesas", "*", {
+      orders: [
+        { column: "codigo_recinto", ascending: true },
+        { column: "nro_mesa", ascending: true },
+      ],
+    });
+
+    const actasOficiales = await fetchAllRows(
+      "actas_oficiales",
+      "codigo_acta"
+    );
+
     const territorioMap = new Map();
+    const recintoMap = new Map();
+    const actasSet = new Set();
 
     territorios.forEach((territorio) => {
       territorioMap.set(Number(territorio.codigo_territorial), territorio);
+    });
+
+    recintos.forEach((recinto) => {
+      recintoMap.set(Number(recinto.codigo_recinto), recinto);
+    });
+
+    actasOficiales.forEach((acta) => {
+      actasSet.add(Number(acta.codigo_acta));
     });
 
     const recintosDetalle = recintos.map((recinto) => {
@@ -692,11 +714,34 @@ export async function getOfficialCatalog(req, res) {
       };
     });
 
+    const mesasDetalle = mesas.map((mesa) => {
+      const recinto = recintoMap.get(Number(mesa.codigo_recinto));
+      const territorio = recinto
+        ? territorioMap.get(Number(recinto.codigo_territorial))
+        : null;
+
+      const tieneTranscripcion = actasSet.has(Number(mesa.codigo_acta));
+
+      return {
+        ...mesa,
+        nombre_recinto: recinto?.nombre_recinto || "Sin recinto",
+        direccion_recinto: recinto?.direccion || "Sin dirección",
+        departamento: territorio?.departamento || "Sin departamento",
+        provincia: territorio?.provincia || "Sin provincia",
+        municipio: territorio?.municipio || "Sin municipio",
+        tiene_transcripcion: tieneTranscripcion,
+        estado_transcripcion: tieneTranscripcion
+          ? "CON_TRANSCRIPCION"
+          : "VACIA",
+      };
+    });
+
     return res.json({
       ok: true,
       data: {
         territorios,
         recintos: recintosDetalle,
+        mesas: mesasDetalle,
       },
     });
   } catch (error) {
@@ -717,18 +762,12 @@ export async function createOfficialMesaAndActa(req, res) {
     req.headers["x-user-name"];
 
   if (!usuarioRevision || String(usuarioRevision).trim().length < 3) {
-    errors.push("Debe existir un usuario activo para crear una acta oficial.");
+    errors.push("Debe existir un usuario activo para transcribir el acta.");
   }
 
-  const codigoRecinto = manualToInt(
-    req.body.codigo_recinto,
-    "Código de recinto",
-    errors
-  );
-
-  const votantesHabilitados = manualToInt(
-    req.body.votantes_habilitados,
-    "Votantes habilitados",
+  const codigoActa = manualToInt(
+    req.body.codigo_acta,
+    "Código de acta",
     errors
   );
 
@@ -773,8 +812,89 @@ export async function createOfficialMesaAndActa(req, res) {
     errors
   );
 
+  if (codigoActa <= 0) {
+    errors.push("El código de acta debe ser mayor a 0.");
+  }
+
+  if (errors.length > 0) {
+    await saveManualValidationLog(
+      codigoActa || null,
+      "ERROR_TRANSCRIPCION_MANUAL",
+      errors.join(" | "),
+      req.body
+    );
+
+    return res.status(400).json({
+      ok: false,
+      message: "No se pudo transcribir el acta por errores de validación.",
+      errors,
+    });
+  }
+
+  const { data: mesa, error: mesaError } = await supabase
+    .from("mesas")
+    .select("*")
+    .eq("codigo_acta", codigoActa)
+    .maybeSingle();
+
+  if (mesaError) {
+    return res.status(500).json({
+      ok: false,
+      message: "Error buscando la mesa.",
+      error: mesaError.message,
+    });
+  }
+
+  if (!mesa) {
+    await saveManualValidationLog(
+      codigoActa,
+      "MESA_NO_EXISTE",
+      "No existe una mesa registrada con ese código de acta.",
+      req.body
+    );
+
+    return res.status(404).json({
+      ok: false,
+      message:
+        "No existe una mesa con ese código de acta. Primero debe existir en la tabla mesas.",
+    });
+  }
+
+  const votantesHabilitados = Number(mesa.votantes_habilitados || 0);
+
   if (votantesHabilitados <= 0) {
-    errors.push("Los votantes habilitados deben ser mayores a 0.");
+    errors.push(
+      "La mesa existe, pero no tiene votantes habilitados válidos. No se puede transcribir."
+    );
+  }
+
+  const { data: actaExistente, error: actaExistenteError } = await supabase
+    .from("actas_oficiales")
+    .select("codigo_acta")
+    .eq("codigo_acta", codigoActa)
+    .maybeSingle();
+
+  if (actaExistenteError) {
+    return res.status(500).json({
+      ok: false,
+      message: "Error verificando si la mesa ya tiene transcripción.",
+      error: actaExistenteError.message,
+    });
+  }
+
+  if (actaExistente) {
+    await saveManualValidationLog(
+      codigoActa,
+      "ACTA_YA_TRANSCRITA",
+      "La mesa ya tiene una transcripción registrada en actas_oficiales.",
+      req.body
+    );
+
+    return res.status(409).json({
+      ok: false,
+      message:
+        "Esta mesa ya tiene una transcripción oficial. No se puede volver a insertar.",
+    });
   }
 
   const votosValidos = p1 + p2 + p3 + p4;
@@ -831,15 +951,15 @@ export async function createOfficialMesaAndActa(req, res) {
 
   if (errors.length > 0) {
     await saveManualValidationLog(
-      null,
-      "ERROR_CREACION_MANUAL",
+      codigoActa,
+      "ERROR_TRANSCRIPCION_MANUAL",
       errors.join(" | "),
       req.body
     );
 
     return res.status(400).json({
       ok: false,
-      message: "No se pudo crear el acta por errores de validación.",
+      message: "No se pudo transcribir el acta por errores de validación.",
       errors,
     });
   }
@@ -847,35 +967,21 @@ export async function createOfficialMesaAndActa(req, res) {
   const { data: recinto, error: recintoError } = await supabase
     .from("recintos")
     .select("*")
-    .eq("codigo_recinto", codigoRecinto)
+    .eq("codigo_recinto", mesa.codigo_recinto)
     .maybeSingle();
 
   if (recintoError) {
     return res.status(500).json({
       ok: false,
-      message: "Error buscando el recinto.",
+      message: "Error buscando el recinto de la mesa.",
       error: recintoError.message,
-    });
-  }
-
-  if (!recinto) {
-    await saveManualValidationLog(
-      null,
-      "RECINTO_NO_EXISTE",
-      "El recinto seleccionado no existe en la base de datos.",
-      req.body
-    );
-
-    return res.status(400).json({
-      ok: false,
-      message: "El recinto seleccionado no existe.",
     });
   }
 
   const { data: territorio, error: territorioError } = await supabase
     .from("territorios")
     .select("*")
-    .eq("codigo_territorial", recinto.codigo_territorial)
+    .eq("codigo_territorial", recinto?.codigo_territorial)
     .maybeSingle();
 
   if (territorioError) {
@@ -886,116 +992,11 @@ export async function createOfficialMesaAndActa(req, res) {
     });
   }
 
-  if (!territorio) {
-    await saveManualValidationLog(
-      null,
-      "TERRITORIO_NO_EXISTE",
-      "El recinto existe, pero no tiene un territorio válido asociado.",
-      req.body
-    );
-
-    return res.status(400).json({
-      ok: false,
-      message: "El recinto no tiene un territorio válido asociado.",
-    });
-  }
-
-  const { data: ultimaMesa, error: ultimaMesaError } = await supabase
-    .from("mesas")
-    .select("nro_mesa")
-    .eq("codigo_recinto", codigoRecinto)
-    .order("nro_mesa", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (ultimaMesaError) {
-    return res.status(500).json({
-      ok: false,
-      message: "Error calculando el número automático de mesa.",
-      error: ultimaMesaError.message,
-    });
-  }
-
-  const maxMesaEnTabla = Number(ultimaMesa?.nro_mesa || 0);
-  const maxMesaEnRecinto = Number(recinto.num_mesas || 0);
-
-  const nroMesa = Math.max(maxMesaEnTabla, maxMesaEnRecinto) + 1;
-  const codigoActa = codigoRecinto * 1000 + nroMesa;
-
-  const { data: mesaExistente, error: mesaExistenteError } = await supabase
-    .from("mesas")
-    .select("codigo_acta")
-    .eq("codigo_acta", codigoActa)
-    .maybeSingle();
-
-  if (mesaExistenteError) {
-    return res.status(500).json({
-      ok: false,
-      message: "Error verificando si la mesa ya existe.",
-      error: mesaExistenteError.message,
-    });
-  }
-
-  if (mesaExistente) {
-    await saveManualValidationLog(
-      codigoActa,
-      "MESA_DUPLICADA",
-      "Ya existe una mesa con ese código de acta.",
-      req.body
-    );
-
-    return res.status(409).json({
-      ok: false,
-      message: "Ya existe una mesa con ese número en el recinto seleccionado.",
-    });
-  }
-
-  const { data: actaExistente, error: actaExistenteError } = await supabase
-    .from("actas_oficiales")
-    .select("codigo_acta")
-    .eq("codigo_acta", codigoActa)
-    .maybeSingle();
-
-  if (actaExistenteError) {
-    return res.status(500).json({
-      ok: false,
-      message: "Error verificando si el acta ya existe.",
-      error: actaExistenteError.message,
-    });
-  }
-
-  if (actaExistente) {
-    await saveManualValidationLog(
-      codigoActa,
-      "ACTA_DUPLICADA",
-      "Ya existe una acta oficial con ese código.",
-      req.body
-    );
-
-    return res.status(409).json({
-      ok: false,
-      message: "Ya existe una acta oficial con ese código.",
-    });
-  }
-
-  let createdMesa = false;
   let createdActa = false;
+  let createdVotos = false;
+  const estadoAnteriorMesa = mesa.estado_acta || "PENDIENTE";
 
   try {
-    const { error: insertMesaError } = await supabase.from("mesas").insert({
-      codigo_acta: codigoActa,
-      codigo_recinto: codigoRecinto,
-      nro_mesa: nroMesa,
-      votantes_habilitados: votantesHabilitados,
-      estado_acta: "PROCESADA",
-    });
-
-    if (insertMesaError) {
-      throw new Error(insertMesaError.message);
-    }
-
-    createdMesa = true;
-
     const { error: insertActaError } = await supabase
       .from("actas_oficiales")
       .insert({
@@ -1049,34 +1050,36 @@ export async function createOfficialMesaAndActa(req, res) {
       throw new Error(insertVotosError.message);
     }
 
-    const { error: updateRecintoError } = await supabase
-      .from("recintos")
-      .update({
-        num_mesas: nroMesa,
-      })
-      .eq("codigo_recinto", codigoRecinto);
+    createdVotos = true;
 
-    if (updateRecintoError) {
-      throw new Error(updateRecintoError.message);
+    const { error: updateMesaError } = await supabase
+      .from("mesas")
+      .update({
+        estado_acta: "PROCESADA",
+      })
+      .eq("codigo_acta", codigoActa);
+
+    if (updateMesaError) {
+      throw new Error(updateMesaError.message);
     }
 
     await supabase.from("event_store_oficial").insert({
       entidad_id: codigoActa,
-      tipo_evento: "ACTA_OFICIAL_CREADA_MANUALMENTE",
+      tipo_evento: "ACTA_TRANSCRITA_MANUALMENTE",
       payload: {
         codigo_acta: codigoActa,
-        codigo_recinto: codigoRecinto,
-        nro_mesa: nroMesa,
+        codigo_recinto: mesa.codigo_recinto,
+        nro_mesa: mesa.nro_mesa,
         votantes_habilitados: votantesHabilitados,
         votos_validos: votosValidos,
         votos_blancos: votosBlancos,
         votos_nulos: votosNulos,
         papeletas_anfora: papeletasAnfora,
         papeletas_no_utilizadas: papeletasNoUtilizadas,
-        departamento: territorio.departamento,
-        provincia: territorio.provincia,
-        municipio: territorio.municipio,
-        recinto: recinto.nombre_recinto,
+        departamento: territorio?.departamento || null,
+        provincia: territorio?.provincia || null,
+        municipio: territorio?.municipio || null,
+        recinto: recinto?.nombre_recinto || null,
         usuario_revision: usuarioRevision,
       },
       usuario_sistema: usuarioRevision,
@@ -1084,50 +1087,55 @@ export async function createOfficialMesaAndActa(req, res) {
 
     return res.status(201).json({
       ok: true,
-      message: "Mesa y acta oficial creadas correctamente.",
+      message: "Transcripción registrada correctamente en la mesa existente.",
       data: {
         codigo_acta: codigoActa,
-        codigo_recinto: codigoRecinto,
-        nro_mesa: nroMesa,
+        codigo_recinto: mesa.codigo_recinto,
+        nro_mesa: mesa.nro_mesa,
         votantes_habilitados: votantesHabilitados,
         votos_validos: votosValidos,
         votos_blancos: votosBlancos,
         votos_nulos: votosNulos,
         papeletas_anfora: papeletasAnfora,
         papeletas_no_utilizadas: papeletasNoUtilizadas,
-        departamento: territorio.departamento,
-        provincia: territorio.provincia,
-        municipio: territorio.municipio,
-        recinto: recinto.nombre_recinto,
+        departamento: territorio?.departamento || null,
+        provincia: territorio?.provincia || null,
+        municipio: territorio?.municipio || null,
+        recinto: recinto?.nombre_recinto || null,
       },
     });
   } catch (error) {
-    if (createdActa) {
+    if (createdVotos) {
       await supabase
         .from("votos_candidatos_oficial")
         .delete()
         .eq("codigo_acta", codigoActa);
+    }
 
+    if (createdActa) {
       await supabase
         .from("actas_oficiales")
         .delete()
         .eq("codigo_acta", codigoActa);
     }
 
-    if (createdMesa) {
-      await supabase.from("mesas").delete().eq("codigo_acta", codigoActa);
-    }
+    await supabase
+      .from("mesas")
+      .update({
+        estado_acta: estadoAnteriorMesa,
+      })
+      .eq("codigo_acta", codigoActa);
 
     await saveManualValidationLog(
       codigoActa,
-      "ERROR_INSERCION_MANUAL",
+      "ERROR_INSERCION_TRANSCRIPCION",
       error.message,
       req.body
     );
 
     return res.status(500).json({
       ok: false,
-      message: "Error creando mesa y acta oficial.",
+      message: "Error registrando la transcripción del acta.",
       error: error.message,
     });
   }

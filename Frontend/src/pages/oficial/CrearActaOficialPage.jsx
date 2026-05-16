@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   crearMesaYActaOficial,
-  getActasOficialesDetalle, // ← CAMBIADO: usar getActasOficialesDetalle en lugar de getCatalogoOficial
+  getCatalogoOficial,
 } from "../../services/oficialService";
 import { getCurrentUser } from "../../utils/auth";
 import "./CrearActaOficialPage.css";
@@ -11,7 +11,6 @@ const initialForm = {
   provincia: "",
   municipio: "",
   codigo_recinto: "",
-  votantes_habilitados: "",
   p1: "",
   p2: "",
   p3: "",
@@ -40,13 +39,17 @@ function toNumber(value) {
 
 function uniqueValues(items) {
   return Array.from(new Set(items.filter(Boolean))).sort((a, b) =>
-    a.localeCompare(b)
+    String(a).localeCompare(String(b))
   );
 }
 
 function CrearActaOficialPage({ onBack }) {
   const [form, setForm] = useState(initialForm);
   const [recintos, setRecintos] = useState([]);
+  const [mesas, setMesas] = useState([]);
+  const [mesaSeleccionada, setMesaSeleccionada] = useState(null);
+  const [codigoBusqueda, setCodigoBusqueda] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -55,50 +58,20 @@ function CrearActaOficialPage({ onBack }) {
 
   const currentUser = getCurrentUser();
 
-  // FUNCIÓN MODIFICADA: Obtener recintos desde las actas existentes
   async function loadCatalogo() {
     setLoading(true);
 
-    // Usar getActasOficialesDetalle en lugar de getCatalogoOficial
-    const response = await getActasOficialesDetalle();
+    const response = await getCatalogoOficial();
 
     if (!response.ok) {
-      setMessage(response.message || "No se pudo cargar los recintos.");
+      setMessage(response.message || "No se pudo cargar el catálogo.");
       setMessageType("error");
       setLoading(false);
       return;
     }
 
-    const actas = response.data || [];
-    
-    // Extraer recintos únicos de las actas
-    const recintosMap = new Map();
-    
-    actas.forEach(acta => {
-      if (acta.codigo_recinto && !recintosMap.has(String(acta.codigo_recinto))) {
-        // Contar cuántas mesas tiene este recinto
-        const mesasDelRecinto = actas.filter(a => String(a.codigo_recinto) === String(acta.codigo_recinto));
-        
-        recintosMap.set(String(acta.codigo_recinto), {
-          codigo_recinto: acta.codigo_recinto,
-          nombre_recinto: acta.nombre_recinto || `Recinto ${acta.codigo_recinto}`,
-          direccion: acta.direccion_recinto || "Sin dirección",
-          departamento: acta.departamento || "",
-          provincia: acta.provincia || "",
-          municipio: acta.municipio || "",
-          num_mesas: mesasDelRecinto.length
-        });
-      }
-    });
-    
-    const recintosList = Array.from(recintosMap.values());
-    
-    if (recintosList.length === 0) {
-      setMessage("No hay recintos registrados. Debes crear al menos un recinto primero.");
-      setMessageType("error");
-    }
-    
-    setRecintos(recintosList);
+    setRecintos(response.data?.recintos || []);
+    setMesas(response.data?.mesas || []);
     setLoading(false);
   }
 
@@ -110,34 +83,34 @@ function CrearActaOficialPage({ onBack }) {
     return uniqueValues(recintos.map((item) => item.departamento));
   }, [recintos]);
 
-  const provincias = useMemo(() => {
+  const municipios = useMemo(() => {
     return uniqueValues(
       recintos
         .filter((item) => item.departamento === form.departamento)
-        .map((item) => item.provincia)
+        .map((item) => item.municipio)
     );
   }, [recintos, form.departamento]);
 
-  const municipios = useMemo(() => {
+  const provincias = useMemo(() => {
     return uniqueValues(
       recintos
         .filter(
           (item) =>
             item.departamento === form.departamento &&
-            item.provincia === form.provincia
+            item.municipio === form.municipio
         )
-        .map((item) => item.municipio)
+        .map((item) => item.provincia)
     );
-  }, [recintos, form.departamento, form.provincia]);
+  }, [recintos, form.departamento, form.municipio]);
 
   const recintosFiltrados = useMemo(() => {
     return recintos.filter(
       (item) =>
         item.departamento === form.departamento &&
-        item.provincia === form.provincia &&
-        item.municipio === form.municipio
+        item.municipio === form.municipio &&
+        item.provincia === form.provincia
     );
-  }, [recintos, form.departamento, form.provincia, form.municipio]);
+  }, [recintos, form.departamento, form.municipio, form.provincia]);
 
   const recintoSeleccionado = useMemo(() => {
     return recintos.find(
@@ -145,12 +118,26 @@ function CrearActaOficialPage({ onBack }) {
     );
   }, [recintos, form.codigo_recinto]);
 
-  const votantesHabilitados = toNumber(form.votantes_habilitados);
-  const puedeAsignarVotos = votantesHabilitados > 0;
+  const mesasFiltradas = useMemo(() => {
+    if (!form.codigo_recinto) return [];
 
-  const mesaAutomatica = recintoSeleccionado
-    ? Number(recintoSeleccionado.num_mesas || 0) + 1
-    : "";
+    return mesas
+      .filter(
+        (mesa) => String(mesa.codigo_recinto) === String(form.codigo_recinto)
+      )
+      .sort((a, b) => Number(a.nro_mesa || 0) - Number(b.nro_mesa || 0));
+  }, [mesas, form.codigo_recinto]);
+
+  const votantesHabilitados = Number(
+    mesaSeleccionada?.votantes_habilitados || 0
+  );
+
+  const mesaTieneTranscripcion =
+    mesaSeleccionada?.tiene_transcripcion ||
+    mesaSeleccionada?.estado_transcripcion === "CON_TRANSCRIPCION";
+
+  const puedeAsignarVotos =
+    mesaSeleccionada && !mesaTieneTranscripcion && votantesHabilitados > 0;
 
   const votosValidosCalculados =
     toNumber(form.p1) +
@@ -166,15 +153,23 @@ function CrearActaOficialPage({ onBack }) {
   const papeletasNoUtilizadasCalculada =
     votantesHabilitados - papeletasAnforaCalculada;
 
-  const codigoActaCalculado =
-    form.codigo_recinto && mesaAutomatica
-      ? toNumber(form.codigo_recinto) * 1000 + toNumber(mesaAutomatica)
-      : "";
-
   const puntosDisponibles =
     votantesHabilitados - papeletasAnforaCalculada >= 0
       ? votantesHabilitados - papeletasAnforaCalculada
       : 0;
+
+  function limpiarDatosActa() {
+    setForm((prev) => ({
+      ...prev,
+      p1: "",
+      p2: "",
+      p3: "",
+      p4: "",
+      votos_blancos: "",
+      votos_nulos: "",
+      observaciones: "",
+    }));
+  }
 
   function updateField(field, value) {
     setForm((prev) => ({
@@ -187,27 +182,36 @@ function CrearActaOficialPage({ onBack }) {
     setForm((prev) => ({
       ...prev,
       departamento: value,
+      municipio: "",
       provincia: "",
-      municipio: "",
       codigo_recinto: "",
     }));
-  }
 
-  function handleProvinciaChange(value) {
-    setForm((prev) => ({
-      ...prev,
-      provincia: value,
-      municipio: "",
-      codigo_recinto: "",
-    }));
+    setMesaSeleccionada(null);
+    limpiarDatosActa();
   }
 
   function handleMunicipioChange(value) {
     setForm((prev) => ({
       ...prev,
       municipio: value,
+      provincia: "",
       codigo_recinto: "",
     }));
+
+    setMesaSeleccionada(null);
+    limpiarDatosActa();
+  }
+
+  function handleProvinciaChange(value) {
+    setForm((prev) => ({
+      ...prev,
+      provincia: value,
+      codigo_recinto: "",
+    }));
+
+    setMesaSeleccionada(null);
+    limpiarDatosActa();
   }
 
   function handleRecintoChange(value) {
@@ -215,42 +219,56 @@ function CrearActaOficialPage({ onBack }) {
       ...prev,
       codigo_recinto: value,
     }));
+
+    setMesaSeleccionada(null);
+    limpiarDatosActa();
   }
 
-  function handleVotantesChange(value) {
-    const nuevoValor = Number(value || 0);
+  function seleccionarMesa(mesa) {
+    setMesaSeleccionada(mesa);
+    setMessage("");
+    setMessageType("");
+    limpiarDatosActa();
+  }
 
-    setForm((prev) => {
-      const nuevaForma = {
-        ...prev,
-        votantes_habilitados: value,
-      };
+  function buscarPorCodigoActa() {
+    const codigoLimpio = codigoBusqueda.trim();
 
-      const totalAsignado =
-        toNumber(prev.p1) +
-        toNumber(prev.p2) +
-        toNumber(prev.p3) +
-        toNumber(prev.p4) +
-        toNumber(prev.votos_blancos) +
-        toNumber(prev.votos_nulos);
+    if (!codigoLimpio) {
+      setMessage("Ingresa un código de acta para buscar.");
+      setMessageType("error");
+      return;
+    }
 
-      if (!nuevoValor || nuevoValor <= 0 || totalAsignado > nuevoValor) {
-        nuevaForma.p1 = "";
-        nuevaForma.p2 = "";
-        nuevaForma.p3 = "";
-        nuevaForma.p4 = "";
-        nuevaForma.votos_blancos = "";
-        nuevaForma.votos_nulos = "";
-      }
+    const mesaEncontrada = mesas.find(
+      (mesa) => String(mesa.codigo_acta) === codigoLimpio
+    );
 
-      return nuevaForma;
-    });
+    if (!mesaEncontrada) {
+      setMesaSeleccionada(null);
+      setMessage("No se encontró una mesa con ese código de acta.");
+      setMessageType("error");
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      departamento: mesaEncontrada.departamento,
+      municipio: mesaEncontrada.municipio,
+      provincia: mesaEncontrada.provincia,
+      codigo_recinto: String(mesaEncontrada.codigo_recinto),
+    }));
+
+    seleccionarMesa(mesaEncontrada);
+
+    setMessage(
+      `Mesa encontrada: recinto ${mesaEncontrada.nombre_recinto}, mesa ${mesaEncontrada.nro_mesa}.`
+    );
+    setMessageType("success");
   }
 
   function handleAsignacionChange(field, value) {
-    if (!puedeAsignarVotos) {
-      return;
-    }
+    if (!puedeAsignarVotos) return;
 
     const numericValue = Math.max(0, Number(value || 0));
 
@@ -289,28 +307,18 @@ function CrearActaOficialPage({ onBack }) {
       errors.push("Debe existir un usuario activo.");
     }
 
-    if (!form.departamento) {
-      errors.push("Selecciona un departamento.");
+    if (!mesaSeleccionada) {
+      errors.push("Primero debes seleccionar una mesa existente.");
     }
 
-    if (!form.provincia) {
-      errors.push("Selecciona una provincia.");
+    if (mesaTieneTranscripcion) {
+      errors.push("Esta mesa ya tiene transcripción oficial registrada.");
     }
 
-    if (!form.municipio) {
-      errors.push("Selecciona un municipio.");
-    }
-
-    if (!form.codigo_recinto) {
-      errors.push("Selecciona un recinto existente.");
-    }
-
-    if (!mesaAutomatica || mesaAutomatica <= 0) {
-      errors.push("No se pudo calcular el número automático de mesa.");
-    }
-
-    if (!form.votantes_habilitados || votantesHabilitados <= 0) {
-      errors.push("Primero debes ingresar votantes habilitados mayores a 0.");
+    if (votantesHabilitados <= 0) {
+      errors.push(
+        "La mesa seleccionada no tiene votantes habilitados válidos."
+      );
     }
 
     if (papeletasAnforaCalculada > votantesHabilitados) {
@@ -343,17 +351,13 @@ function CrearActaOficialPage({ onBack }) {
     setSaving(true);
 
     const payload = {
-      codigo_recinto: toNumber(form.codigo_recinto),
-      votantes_habilitados: votantesHabilitados,
+      codigo_acta: Number(mesaSeleccionada.codigo_acta),
       p1: toNumber(form.p1),
       p2: toNumber(form.p2),
       p3: toNumber(form.p3),
       p4: toNumber(form.p4),
-      votos_validos: votosValidosCalculados,
       votos_blancos: toNumber(form.votos_blancos),
       votos_nulos: toNumber(form.votos_nulos),
-      papeletas_anfora: papeletasAnforaCalculada,
-      papeletas_no_utilizadas: papeletasNoUtilizadasCalculada,
       apertura_hora: toNumber(form.apertura_hora),
       apertura_minutos: toNumber(form.apertura_minutos),
       cierre_hora: toNumber(form.cierre_hora),
@@ -362,49 +366,44 @@ function CrearActaOficialPage({ onBack }) {
       usuario_revision: currentUser?.username,
     };
 
-    try {
-      const response = await crearMesaYActaOficial(payload);
+    const response = await crearMesaYActaOficial(payload);
 
-      if (!response.ok) {
-        setMessage(
-          response.errors?.join(" | ") ||
-            response.message ||
-            "No se pudo crear el acta."
-        );
-        setMessageType("error");
-        setSaving(false);
-        return;
-      }
+    setSaving(false);
 
+    if (!response.ok) {
       setMessage(
-        `Acta creada correctamente. Mesa generada: ${response.data?.nro_mesa}. Código de acta: ${response.data?.codigo_acta}`
+        response.errors?.join(" | ") ||
+          response.message ||
+          "No se pudo registrar la transcripción."
       );
-      setMessageType("success");
-
-      setForm(initialForm);
-      await loadCatalogo(); // Recargar catálogo para actualizar el número de mesas
-    } catch (error) {
-      console.error("Error al crear acta:", error);
-      setMessage(error.message || "Error al crear el acta");
       setMessageType("error");
-    } finally {
-      setSaving(false);
+      return;
     }
+
+    setMessage(
+      `Transcripción registrada correctamente. Código de acta: ${response.data?.codigo_acta}`
+    );
+    setMessageType("success");
+
+    setMesaSeleccionada(null);
+    setForm(initialForm);
+    setCodigoBusqueda("");
+    await loadCatalogo();
   }
 
   if (loading) {
-    return <div className="loading-box">Cargando recintos existentes...</div>;
+    return <div className="loading-box">Cargando mesas existentes...</div>;
   }
 
   return (
     <div className="cre-root">
       <div className="cre-header">
         <div>
-          <h2 className="page-title">Crear mesa y acta oficial</h2>
+          <h2 className="page-title">Registrar transcripción oficial</h2>
 
           <p className="page-description">
-            Crea una nueva mesa automática dentro de un recinto existente y
-            registra su acta oficial.
+            Busca una mesa existente vacía y registra los datos de su
+            transcripción oficial.
           </p>
         </div>
 
@@ -426,9 +425,35 @@ function CrearActaOficialPage({ onBack }) {
       )}
 
       <form className="cre-form" onSubmit={handleSubmit}>
-        {/* Resto del JSX igual... */}
         <section className="cre-section">
-          <h3>Ubicación del acta</h3>
+          <h3>Buscar por código de acta</h3>
+
+          <div className="cre-grid">
+            <div className="cre-field">
+              <label>Código de acta</label>
+              <input
+                type="number"
+                value={codigoBusqueda}
+                onChange={(event) => setCodigoBusqueda(event.target.value)}
+                placeholder="Ej: 1010200001005"
+              />
+            </div>
+
+            <div className="cre-field">
+              <label>Acción</label>
+              <button
+                type="button"
+                className="cre-primary"
+                onClick={buscarPorCodigoActa}
+              >
+                Buscar mesa
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="cre-section">
+          <h3>Buscar por ubicación</h3>
 
           <div className="cre-grid">
             <div className="cre-field">
@@ -449,27 +474,11 @@ function CrearActaOficialPage({ onBack }) {
             </div>
 
             <div className="cre-field">
-              <label>Provincia</label>
-              <select
-                value={form.provincia}
-                onChange={(event) => handleProvinciaChange(event.target.value)}
-                disabled={!form.departamento}
-              >
-                <option value="">Seleccionar provincia</option>
-                {provincias.map((provincia) => (
-                  <option key={provincia} value={provincia}>
-                    {provincia}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="cre-field">
               <label>Municipio</label>
               <select
                 value={form.municipio}
                 onChange={(event) => handleMunicipioChange(event.target.value)}
-                disabled={!form.provincia}
+                disabled={!form.departamento}
               >
                 <option value="">Seleccionar municipio</option>
                 {municipios.map((municipio) => (
@@ -481,13 +490,29 @@ function CrearActaOficialPage({ onBack }) {
             </div>
 
             <div className="cre-field">
-              <label>Recinto / colegio existente</label>
+              <label>Provincia</label>
+              <select
+                value={form.provincia}
+                onChange={(event) => handleProvinciaChange(event.target.value)}
+                disabled={!form.municipio}
+              >
+                <option value="">Seleccionar provincia</option>
+                {provincias.map((provincia) => (
+                  <option key={provincia} value={provincia}>
+                    {provincia}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="cre-field">
+              <label>Recinto electoral existente</label>
               <select
                 value={form.codigo_recinto}
                 onChange={(event) => handleRecintoChange(event.target.value)}
-                disabled={!form.municipio}
+                disabled={!form.provincia}
               >
-                <option value="">Seleccionar recinto</option>
+                <option value="">Seleccionar recinto electoral</option>
                 {recintosFiltrados.map((recinto) => (
                   <option
                     key={recinto.codigo_recinto}
@@ -510,63 +535,129 @@ function CrearActaOficialPage({ onBack }) {
                 {recintoSeleccionado.direccion || "Sin dirección"}
               </p>
               <p>
-                <b>Mesas actuales:</b> {recintoSeleccionado.num_mesas ?? 0}
-              </p>
-              <p>
-                <b>Nueva mesa automática:</b> {mesaAutomatica}
+                <b>Mesas registradas:</b> {mesasFiltradas.length}
               </p>
             </div>
           )}
         </section>
 
-        {/* El resto del formulario se mantiene igual */}
+        {form.codigo_recinto && (
+          <section className="cre-section">
+            <h3>Mesas del recinto</h3>
+
+            <div className="table-wrapper">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Código acta</th>
+                    <th>Mesa</th>
+                    <th>Votantes habilitados</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {mesasFiltradas.map((mesa) => (
+                    <tr key={mesa.codigo_acta}>
+                      <td>{mesa.codigo_acta}</td>
+                      <td>{mesa.nro_mesa}</td>
+                      <td>{mesa.votantes_habilitados}</td>
+                      <td>
+                        {mesa.tiene_transcripcion
+                          ? "Con transcripción"
+                          : "Vacía"}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className={
+                            mesa.tiene_transcripcion
+                              ? "cre-secondary"
+                              : "cre-primary"
+                          }
+                          disabled={mesa.tiene_transcripcion}
+                          onClick={() => seleccionarMesa(mesa)}
+                        >
+                          {mesa.tiene_transcripcion
+                            ? "Ya transcrita"
+                            : "Seleccionar"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {mesasFiltradas.length === 0 && (
+                    <tr>
+                      <td colSpan="5">
+                        No hay mesas registradas en este recinto.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
         <section className="cre-section">
-          <h3>Datos de mesa</h3>
+          <h3>Mesa seleccionada</h3>
 
-          <div className="cre-grid">
-            <div className="cre-field">
-              <label>Número de mesa automático</label>
-              <input
-                type="text"
-                value={mesaAutomatica || "Seleccione un recinto"}
-                readOnly
-              />
+          {!mesaSeleccionada && (
+            <div className="cre-validation-box">
+              <p>
+                Selecciona una mesa vacía desde la lista o busca por código de
+                acta.
+              </p>
             </div>
+          )}
 
-            <div className="cre-field">
-              <label>Código de acta generado</label>
-              <input
-                type="text"
-                value={codigoActaCalculado || "Seleccione un recinto"}
-                readOnly
-              />
-            </div>
+          {mesaSeleccionada && (
+            <div className="cre-grid">
+              <div className="cre-field">
+                <label>Código de acta</label>
+                <input value={mesaSeleccionada.codigo_acta} readOnly />
+              </div>
 
-            <div className="cre-field">
-              <label>Votantes habilitados</label>
-              <input
-                type="number"
-                min="1"
-                value={form.votantes_habilitados}
-                onChange={(event) => handleVotantesChange(event.target.value)}
-              />
-            </div>
+              <div className="cre-field">
+                <label>Número de mesa</label>
+                <input value={mesaSeleccionada.nro_mesa} readOnly />
+              </div>
 
-            <div className="cre-field">
-              <label>Puntos disponibles</label>
-              <input type="text" value={puntosDisponibles} readOnly />
+              <div className="cre-field">
+                <label>Votantes habilitados</label>
+                <input value={votantesHabilitados} readOnly />
+              </div>
+
+              <div className="cre-field">
+                <label>Puntos disponibles</label>
+                <input value={puntosDisponibles} readOnly />
+              </div>
             </div>
-          </div>
+          )}
+
+          {mesaTieneTranscripcion && (
+            <div className="cre-message cre-message-error">
+              Esta mesa ya tiene transcripción oficial. No se puede insertar de
+              nuevo.
+            </div>
+          )}
+
+          {mesaSeleccionada && votantesHabilitados <= 0 && (
+            <div className="cre-message cre-message-error">
+              Esta mesa no tiene votantes habilitados válidos.
+            </div>
+          )}
         </section>
 
         <section className="cre-section">
-          <h3>Datos del acta</h3>
+          <h3>Datos de la transcripción</h3>
 
           {!puedeAsignarVotos && (
             <div className="cre-validation-box">
               <p>
-                Primero ingresa <b>votantes habilitados</b> mayores a 0 para
-                poder asignar votos.
+                Primero selecciona una mesa vacía con votantes habilitados
+                mayores a 0.
               </p>
             </div>
           )}
@@ -775,8 +866,12 @@ function CrearActaOficialPage({ onBack }) {
             Cancelar
           </button>
 
-          <button type="submit" className="cre-primary" disabled={saving}>
-            {saving ? "Guardando..." : "Crear mesa y acta oficial"}
+          <button
+            type="submit"
+            className="cre-primary"
+            disabled={saving || !puedeAsignarVotos}
+          >
+            {saving ? "Guardando..." : "Registrar transcripción"}
           </button>
         </div>
       </form>

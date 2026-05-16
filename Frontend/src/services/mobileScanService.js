@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "https://trep-actas.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "VITE_API_URL=http://localhost:3001";
 
 async function uploadFile(endpoint, file, extraData = {}) {
   try {
