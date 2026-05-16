@@ -156,12 +156,28 @@ export const uploadActaMobile = async (req, res) => {
 
     console.log(`Iniciando procesamiento de: ${file.originalname}`);
 
+    // Ejecuta el OCR enviando el buffer temporal desde la RAM
     const datosExtraidos = await procesarImagenOCR(
       file.buffer,
       file.originalname
     );
 
-    console.log("Datos extraídos por OCR:", datosExtraidos);
+    console.log("Datos extraídos crudos por OCR:", datosExtraidos);
+
+    // =========================================================
+    // 🔄 AÑADIDO: ADAPTADOR DE ESTRUCTURA NINJA
+    // Mapea el formato JSON anidado de Python al formato plano de tu controlador
+    // =========================================================
+    if (datosExtraidos && datosExtraidos.votos && datosExtraidos.totales) {
+      datosExtraidos.P1 = datosExtraidos.votos.P1;
+      datosExtraidos.P2 = datosExtraidos.votos.P2;
+      datosExtraidos.P3 = datosExtraidos.votos.P3;
+      datosExtraidos.P4 = datosExtraidos.votos.P4;
+      datosExtraidos.votos_validos = datosExtraidos.totales.validos;
+      datosExtraidos.votos_blancos = datosExtraidos.totales.blancos;
+      datosExtraidos.votos_nulos = datosExtraidos.totales.nulos;
+    }
+    // =========================================================
 
     const votosValidos =
       toNumber(datosExtraidos.votos_validos) ||

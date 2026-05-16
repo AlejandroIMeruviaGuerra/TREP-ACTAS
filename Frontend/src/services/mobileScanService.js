@@ -1,8 +1,10 @@
-const API_URL = import.meta.env.VITE_API_URL || "VITE_API_URL=http://localhost:3001";
+// Corregimos el texto de fallback para la URL de la API
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 async function uploadFile(endpoint, file, extraData = {}) {
   try {
     const formData = new FormData();
+    // La clave "file" es la que configuramos en multer en el backend
     formData.append("file", file);
 
     Object.entries(extraData).forEach(([key, value]) => {
@@ -19,15 +21,14 @@ async function uploadFile(endpoint, file, extraData = {}) {
     if (!response.ok) {
       return {
         ok: false,
-        message: data.message || "Error enviando archivo al backend",
+        // Agregamos data.error porque así lo mandamos desde el controlador Node.js
+        message: data.message || data.error || "Error enviando archivo al backend",
         data,
       };
     }
 
-    return {
-      ok: true,
-      data,
-    };
+    // Devolvemos la data directamente (el backend ya manda { ok: true, data: {...} })
+    return data;
   } catch (error) {
     return {
       ok: false,
@@ -36,15 +37,20 @@ async function uploadFile(endpoint, file, extraData = {}) {
   }
 }
 
+// ------------------------------------------------------------------
+// Ambas funciones ahora apuntan a nuestro nuevo motor OCR.
+// El script de Python detectará automáticamente si es PDF o Imagen.
+// ------------------------------------------------------------------
+
 export async function uploadActaPdf(file, usuario = "") {
-  return uploadFile("/api/mobile/pdf", file, {
+  return uploadFile("/api/conteo-rapido/upload-acta", file, {
     usuario,
     tipo: "PDF_ACTA",
   });
 }
 
 export async function uploadActaPhoto(file, usuario = "") {
-  return uploadFile("/api/mobile/photo", file, {
+  return uploadFile("/api/conteo-rapido/upload-acta", file, {
     usuario,
     tipo: "FOTO_ACTA",
   });

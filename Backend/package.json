@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "selenium:import": "node src/selenium/importExcelSelenium.js"
+    "selenium:import": "node src/selenium/importExcelSelenium.js",
+    "lote": "node src/scripts/procesamientoMasivo.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
