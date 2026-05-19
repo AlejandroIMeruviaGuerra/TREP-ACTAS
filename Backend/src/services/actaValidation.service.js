@@ -34,6 +34,16 @@ const CAMPOS_NUMERICOS = [
     "cierre_minutos",
 ];
 
+function valorTexto(...values) {
+    for (const value of values) {
+        if (value !== undefined && value !== null && String(value).trim() !== "") {
+            return String(value).trim();
+        }
+    }
+
+    return "";
+}
+
 function validarCamposObligatorios(acta) {
     const errores = [];
 
@@ -147,6 +157,37 @@ function sonActasIguales(a, b) {
     return campos.every((campo) => String(a[campo]) === String(b[campo]));
 }
 
+function construirUbicacion(acta, mesa) {
+    return {
+        departamento_codigo: valorTexto(
+            acta.departamento_codigo,
+            mesa?.departamento_codigo,
+            mesa?.dep_codigo,
+            mesa?.dep
+        ),
+        departamento: valorTexto(
+            acta.departamento,
+            mesa?.departamento,
+            mesa?.departamento_nombre
+        ),
+        provincia: valorTexto(
+            acta.provincia,
+            mesa?.provincia,
+            mesa?.provincia_nombre
+        ),
+        municipio: valorTexto(
+            acta.municipio,
+            mesa?.municipio,
+            mesa?.municipio_nombre
+        ),
+        recinto: valorTexto(
+            acta.recinto,
+            mesa?.recinto,
+            mesa?.recinto_nombre
+        ),
+    };
+}
+
 export async function registrarLogInconsistencia(db, {
     codigo_acta,
     tipo_error,
@@ -185,6 +226,13 @@ export async function validarYGuardarActaMongo(db, acta, datosCrudos = null) {
         errores.push("Mesa no encontrada en padrón");
     }
 
+    const ubicacion = construirUbicacion(acta, mesa);
+
+    const actaNormalizada = {
+        ...acta,
+        ...ubicacion,
+    };
+
     const duplicado = await db.collection("actas_trep").findOne({
         codigo_acta: acta.codigo_acta,
     });
@@ -208,15 +256,16 @@ export async function validarYGuardarActaMongo(db, acta, datosCrudos = null) {
             detalle_error: "Mismo código de acta con datos diferentes",
             datos_crudos: {
                 anterior: duplicado,
-                nuevo: acta,
+                nuevo: actaNormalizada,
             },
         });
 
         await db.collection("actas_observadas").insertOne({
-            ...acta,
+            ...actaNormalizada,
             estado_observacion: "PENDIENTE_REVISION",
             motivos: ["Duplicado con datos alterados"],
-            datos_crudos: datosCrudos || acta,
+            datos_crudos: datosCrudos || actaNormalizada,
+            mesa_info: mesa || null,
             created_at: new Date(),
         });
 
@@ -236,14 +285,15 @@ export async function validarYGuardarActaMongo(db, acta, datosCrudos = null) {
             codigo_acta: acta.codigo_acta,
             tipo_error: "ACTA_INVALIDA",
             detalle_error: errores.join(" | "),
-            datos_crudos: datosCrudos || acta,
+            datos_crudos: datosCrudos || actaNormalizada,
         });
 
         await db.collection("actas_observadas").insertOne({
-            ...acta,
+            ...actaNormalizada,
             estado_observacion: "PENDIENTE_REVISION",
             motivos: errores,
-            datos_crudos: datosCrudos || acta,
+            datos_crudos: datosCrudos || actaNormalizada,
+            mesa_info: mesa || null,
             created_at: new Date(),
         });
 
@@ -256,7 +306,7 @@ export async function validarYGuardarActaMongo(db, acta, datosCrudos = null) {
     }
 
     await db.collection("actas_trep").insertOne({
-        ...acta,
+        ...actaNormalizada,
         estado: "VALIDADA",
         mesa_info: mesa,
         created_at: new Date(),

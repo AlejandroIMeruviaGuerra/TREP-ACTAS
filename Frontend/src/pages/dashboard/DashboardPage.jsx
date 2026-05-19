@@ -274,7 +274,7 @@ function DashboardPage() {
       if (!detalleResponse.ok) {
         setErrorMessage(
           detalleResponse.message ||
-            "No se pudo cargar el detalle por departamento."
+          "No se pudo cargar el detalle por departamento."
         );
         setLoading(false);
         return;
@@ -486,7 +486,7 @@ function DashboardPage() {
             <strong>
               {formatNumber(
                 (resumen?.mesas_pendientes ?? 0) +
-                  (resumen?.mesas_observadas ?? 0)
+                (resumen?.mesas_observadas ?? 0)
               )}
             </strong>
           </div>
@@ -655,9 +655,8 @@ function DashboardPage() {
               return (
                 <button
                   key={department}
-                  className={`dept-tile ${winnerClass} ${
-                    selectedDepartment === department ? "is-selected" : ""
-                  }`}
+                  className={`dept-tile ${winnerClass} ${selectedDepartment === department ? "is-selected" : ""
+                    }`}
                   onClick={() => setSelectedDepartment(department)}
                 >
                   <span className="dept-name">{department}</span>
